@@ -37,7 +37,8 @@
       </div>
 
       <div class="right-section">
-        <div class="user-dropdown">
+        <!-- User is logged in -->
+        <div class="user-dropdown" v-if="isLoggedIn">
           <div class="user-icon" role="button" aria-label="User profile" tabindex="0" @click="toggleUserDropdown">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
@@ -48,7 +49,7 @@
           <transition name="dropdown-animation">
             <div v-if="userDropdownOpen" class="user-dropdown-content" :class="{ 'mobile-dropdown': isMobile }">
               <div class="dropdown-header">
-                <span>User Menu</span>
+                <span>{{ userName || 'User Menu' }}</span>
                 <button class="close-dropdown-btn" @click="closeUserDropdown" aria-label="Close menu">
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                     <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -58,9 +59,15 @@
               </div>
               <a href="/profile" @click.stop>Profile</a>
               <a href="/status" @click.stop>Status</a>
-              <a href="/logout" @click.stop>Log Out</a>
+              <a href="#" @click.prevent="handleLogout">Log Out</a>
             </div>
           </transition>
+        </div>
+        
+        <!-- User is not logged in -->
+        <div class="auth-links" v-else>
+          <a href="/login" class="login-btn">Login</a>
+          <a href="/signup" class="signup-btn">Sign Up</a>
         </div>
 
         <button class="mobile-menu-toggle" aria-label="Toggle menu" @click="toggleMobileMenu">
@@ -181,8 +188,12 @@ export default {
     return {
       mobileMenuOpen: false,
       dropdownOpen: false,
+      userDropdownOpen: false,
       isMobile: false,
       hasScrolled: false,
+      isLoggedIn: false,
+      userName: '',
+      userRole: '',
       pets: [
         {
           id: 1,
@@ -250,6 +261,7 @@ export default {
     window.addEventListener('scroll', this.handleScroll);
     this.addGlobalStyles();
     this.loadExternalScripts();
+    this.checkUserLoggedIn();
   },
   beforeUnmount() {
     window.removeEventListener('resize', this.checkScreenSize);
@@ -312,6 +324,60 @@ export default {
     },
     handleScroll() {
       this.hasScrolled = window.scrollY > 20;
+    },
+    toggleUserDropdown() {
+      this.userDropdownOpen = !this.userDropdownOpen;
+    },
+    closeUserDropdown() {
+      this.userDropdownOpen = false;
+    },
+    checkUserLoggedIn() {
+      const token = localStorage.getItem('token');
+      const userData = localStorage.getItem('user');
+      
+      if (token && userData) {
+        this.isLoggedIn = true;
+        try {
+          const user = JSON.parse(userData);
+          this.userName = user.name || user.email;
+          this.userRole = user.role;
+        } catch (error) {
+          console.error('Error parsing user data:', error);
+        }
+      } else {
+        this.isLoggedIn = false;
+        this.userName = '';
+        this.userRole = '';
+      }
+    },
+    async handleLogout() {
+      try {
+        // Import the authAPI
+        const { authAPI } = await import('../services/api.js');
+        
+        // Call the logout endpoint
+        await authAPI.logout();
+        
+        // Clear local storage and state
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        this.isLoggedIn = false;
+        this.userName = '';
+        this.userRole = '';
+        this.userDropdownOpen = false;
+        
+        // Redirect to login page
+        this.$router.push('/login');
+      } catch (error) {
+        console.error('Logout error:', error);
+        
+        // Even if there's an error, still clear local storage and redirect
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        this.isLoggedIn = false;
+        this.userDropdownOpen = false;
+        this.$router.push('/login');
+      }
     },
   }
 }
@@ -514,6 +580,39 @@ export default {
 .user-icon:hover {
   transform: scale(1.1);
   background-color: rgba(255, 255, 255, 0.3);
+}
+
+.auth-links {
+  display: flex;
+  gap: 1rem;
+}
+
+.login-btn, .signup-btn {
+  text-decoration: none;
+  color: white;
+  font-weight: 600;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  transition: all 0.3s ease;
+}
+
+.login-btn {
+  background-color: transparent;
+  border: 2px solid white;
+}
+
+.login-btn:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+.signup-btn {
+  background-color: #4CAF50;
+  border: 2px solid #4CAF50;
+}
+
+.signup-btn:hover {
+  background-color: #45a049;
+  border-color: #45a049;
 }
 
 .mobile-menu-toggle {
