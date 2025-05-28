@@ -92,7 +92,7 @@
 </template>
 
 <script>
-import axios from 'axios';
+import { authAPI } from '../services/api';
 
 export default {
   name: 'SignUpPage',
@@ -147,7 +147,7 @@ export default {
       this.errorMessage = '';
 
       try {
-        const response = await axios.post('http://localhost/Pawfect-master/backend/signup.php', {
+        const response = await authAPI.register({
           name: this.signupName,
           email: this.signupEmail,
           password: this.signupPassword

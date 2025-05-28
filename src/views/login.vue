@@ -68,7 +68,7 @@
 </template>
 
 <script>
-import axios from 'axios';
+import { authAPI } from '../services/api';
 
 export default {
   name: 'LoginPage',
@@ -98,11 +98,7 @@ export default {
       this.errorMessage = '';
 
       try {
-        const response = await axios.post('http://localhost/Pawfect-master/backend/login.php', {
-          email: this.loginEmail,
-          password: this.loginPassword
-        });
-
+        const response = await authAPI.login(this.loginEmail, this.loginPassword);
         const extractedData = response.data;
 
         if (extractedData && extractedData.success === true) {
