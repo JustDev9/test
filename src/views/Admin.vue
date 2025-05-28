@@ -1,262 +1,219 @@
 <template>
   <div class="admin-layout">
-    <!-- Sidebar -->
-    <aside class="admin-sidebar">
-      <div class="sidebar-header">
-        <h1 class="logo">PAWFECT</h1>
+    <!-- Side Navigation -->
+    <div class="side-nav">
+      <div class="admin-profile">
+        <div class="profile-image">
+          <img src="@/assets/admin-avatar.svg" alt="Admin Profile" />
+        </div>
+        <h3>{{ adminName }}</h3>
+        <button @click="logout" class="logout-btn">Logout</button>
       </div>
-      <nav class="sidebar-nav">
-        <router-link to="/admin" class="nav-item" :class="{ active: $route.path === '/admin' }">
-          <i class="fas fa-chart-line"></i>
-          <span>Dashboard</span>
-        </router-link>
-        <router-link to="/admin/pets" class="nav-item" :class="{ active: $route.path === '/admin/pets' }">
-          <i class="fas fa-paw"></i>
-          <span>Pets</span>
-        </router-link>
-        <router-link to="/admin/applications" class="nav-item" :class="{ active: $route.path === '/admin/applications' }">
-          <i class="fas fa-file-alt"></i>
-          <span>Applications</span>
-        </router-link>
-        <router-link to="/admin/appointments" class="nav-item" :class="{ active: $route.path === '/admin/appointments' }">
-          <i class="fas fa-calendar-alt"></i>
-          <span>Appointments</span>
-        </router-link>
-        <router-link to="/admin/pet-history" class="nav-item" :class="{ active: $route.path === '/admin/pet-history' }">
-          <i class="fas fa-history"></i>
-          <span>Pet History</span>
-        </router-link>
+      <nav>
+        <ul>
+          <li :class="{ active: currentSection === 'pets' }" @click="currentSection = 'pets'">
+            <i class="fas fa-paw"></i> Add Pets
+          </li>
+          <li :class="{ active: currentSection === 'requests' }" @click="currentSection = 'requests'">
+            <i class="fas fa-handshake"></i> Adoption Requests
+          </li>
+          <li :class="{ active: currentSection === 'history' }" @click="currentSection = 'history'">
+            <i class="fas fa-history"></i> Adoption History
+          </li>
+        </ul>
       </nav>
-      <div class="sidebar-footer">
-        <button class="logout-btn" @click="handleLogout">
-          <i class="fas fa-sign-out-alt"></i>
-          <span>Logout</span>
-        </button>
-      </div>
-    </aside>
+    </div>
 
     <!-- Main Content -->
-    <main class="admin-main">
-      <header class="admin-header">
-        <div class="header-left">
-          <h2>{{ currentPageTitle }}</h2>
+    <div class="admin-dashboard">
+      <div class="summary-cards">
+        <div class="summary-card">
+          <h3>Total Pets</h3>
+          <p>{{ pets.length }}</p>
         </div>
-        <div class="header-right">
-          <div class="admin-profile">
-            <img :src="adminAvatar" alt="Admin" class="admin-avatar" />
-            <span class="admin-name">{{ adminName }}</span>
-          </div>
+        <div class="summary-card">
+          <h3>Pending Approvals</h3>
+          <p>{{ pendingApprovals }}</p>
         </div>
-      </header>
-      <div class="admin-content">
-        <router-view></router-view>
+        <div class="summary-card">
+          <h3>Pending Adoptions</h3>
+          <p>{{ pendingAdoptions }}</p>
+        </div>
       </div>
-    </main>
+      <component
+        :is="currentComponent"
+        @pet-added="handlePetAdded"
+        @request-updated="handleRequestUpdate"
+      ></component>
+    </div>
   </div>
 </template>
 
 <script>
+import AddPets from '@/components/AddPets.vue';
+import AdoptionHistory from '@/components/AdoptionHistory.vue';
+import AdoptionRequests from '@/components/AdoptionRequests.vue';
+
 export default {
-  name: 'AdminLayout',
+  name: 'AdminDashboard',
+  components: {
+    AddPets,
+    AdoptionRequests,
+    AdoptionHistory
+  },
   data() {
     return {
       adminName: 'Admin User',
-      adminAvatar: 'https://via.placeholder.com/40',
-      currentPageTitle: 'Dashboard'
-    }
+      currentSection: 'pets',
+      pets: [
+        { id: 1, name: 'Nala', breed: 'Siamese', age: '2 years', approved: true, adoptionStatus: 'Available' },
+        { id: 2, name: 'Toby', breed: 'Labrador', age: '1 year', approved: false, adoptionStatus: 'Available' },
+        { id: 3, name: 'Baby', breed: 'Persian', age: '3 years', approved: true, adoptionStatus: 'Pending' },
+        { id: 4, name: 'Dexter', breed: 'Scottish Fold', age: '2 years', approved: true, adoptionStatus: 'Available' },
+        { id: 5, name: 'Justin', breed: 'Exotic Shorthair', age: '1.5 years', approved: false, adoptionStatus: 'Available' },
+        { id: 6, name: 'Gabie', breed: 'Golden Retriever', age: '6 months', approved: true, adoptionStatus: 'Adopted' },
+        { id: 7, name: 'John', breed: 'Beagle', age: '2 years', approved: true, adoptionStatus: 'Available' },
+        { id: 8, name: 'Chu', breed: 'Ragdoll', age: '1 year', approved: true, adoptionStatus: 'Available' },
+        { id: 9, name: 'Riddley', breed: 'Maine Coon', age: '4 years', approved: true, adoptionStatus: 'Pending' },
+        { id: 10, name: 'Babi', breed: 'Labrador', age: '8 months', approved: true, adoptionStatus: 'Available' },
+      ],
+    };
   },
-  watch: {
-    $route: {
-      immediate: true,
-      handler(to) {
-        this.updatePageTitle(to.name)
+  computed: {
+    currentComponent() {
+      switch (this.currentSection) {
+        case 'pets':
+          return 'AddPets';
+        case 'requests':
+          return 'AdoptionRequests';
+        case 'history':
+          return 'AdoptionHistory';
+        default:
+          return 'AddPets';
       }
-    }
+    },
+    pendingApprovals() {
+      return this.pets.filter(p => !p.approved).length;
+    },
+    pendingAdoptions() {
+      return this.pets.filter(p => p.adoptionStatus === 'Pending').length;
+    },
   },
   methods: {
-    updatePageTitle(routeName) {
-      const titles = {
-        adminDashboard: 'Dashboard',
-        adminPets: 'Pets Management',
-        adminAddPet: 'Add New Pet',
-        adminApplications: 'Adoption Applications',
-        adminAppointments: 'Appointments',
-        adminPetHistory: 'Pet Adoption History'
-      }
-      this.currentPageTitle = titles[routeName] || 'Dashboard'
+    handlePetAdded(newPet) {
+      // Here you would typically make an API call to save the pet
+      this.pets.push({
+        id: this.pets.length + 1,
+        ...newPet,
+        approved: false,
+        adoptionStatus: 'Available'
+      });
     },
-    handleLogout() {
-      // Clear admin session
-      localStorage.removeItem('token')
-      localStorage.removeItem('user')
-      // Redirect to login
-      this.$router.push('/login')
-    }
-  }
-}
+    handleRequestUpdate({ request, action }) {
+      // Update the pet's adoption status based on the request action
+      const pet = this.pets.find(p => p.name === request.petName);
+      if (pet) {
+        pet.adoptionStatus = action === 'approved' ? 'Adopted' : 'Available';
+      }
+    },
+    logout() {
+      // Implement logout logic here
+      this.$router.push('/login');
+    },
+  },
+};
 </script>
 
 <style scoped>
 .admin-layout {
   display: flex;
   min-height: 100vh;
-  background: #f4f6fa;
 }
 
-.admin-sidebar {
-  width: 260px;
-  background: #fff;
-  border-right: 1px solid #e0e0e0;
-  display: flex;
-  flex-direction: column;
-  position: fixed;
-  height: 100vh;
-}
-
-.sidebar-header {
-  padding: 1.5rem;
-  border-bottom: 1px solid #e0e0e0;
-}
-
-.logo {
-  color: #f7871f;
-  font-size: 1.5rem;
-  font-weight: 800;
-  letter-spacing: 1px;
-}
-
-.sidebar-nav {
-  flex: 1;
-  padding: 1rem 0;
-}
-
-.nav-item {
-  display: flex;
-  align-items: center;
-  padding: 0.8rem 1.5rem;
-  color: #555;
-  text-decoration: none;
-  transition: all 0.3s ease;
-  border-right: 3px solid transparent;
-}
-
-.nav-item i {
-  width: 20px;
-  margin-right: 0.8rem;
-}
-
-.nav-item:hover {
-  background: #f8f9fa;
-  color: #f7871f;
-}
-
-.nav-item.active {
-  background: #fff5eb;
-  color: #f7871f;
-  border-right: 3px solid #f7871f;
-}
-
-.sidebar-footer {
-  padding: 1rem 1.5rem;
-  border-top: 1px solid #e0e0e0;
-}
-
-.logout-btn {
-  display: flex;
-  align-items: center;
-  width: 100%;
-  padding: 0.8rem;
-  background: none;
-  border: none;
-  color: #ff5252;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.logout-btn i {
-  margin-right: 0.8rem;
-}
-
-.logout-btn:hover {
-  background: #fff5f5;
-}
-
-.admin-main {
-  flex: 1;
-  margin-left: 260px;
-}
-
-.admin-header {
-  background: #fff;
-  padding: 1rem 2rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-bottom: 1px solid #e0e0e0;
-}
-
-.header-left h2 {
-  color: #222;
-  font-size: 1.5rem;
-  font-weight: 600;
+.side-nav {
+  width: 250px;
+  background: #2c3e50;
+  color: white;
+  padding: 2rem 0;
 }
 
 .admin-profile {
-  display: flex;
-  align-items: center;
-  gap: 0.8rem;
+  text-align: center;
+  padding: 1rem;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  margin-bottom: 2rem;
 }
 
-.admin-avatar {
-  width: 40px;
-  height: 40px;
+.profile-image img {
+  width: 80px;
+  height: 80px;
   border-radius: 50%;
-  object-fit: cover;
+  margin-bottom: 1rem;
 }
 
-.admin-name {
-  color: #555;
-  font-weight: 500;
+.logout-btn {
+  background: #e74c3c;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-top: 1rem;
 }
 
-.admin-content {
+.side-nav ul {
+  list-style: none;
+  padding: 0;
+}
+
+.side-nav li {
+  padding: 1rem 2rem;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.side-nav li:hover {
+  background: rgba(255,255,255,0.1);
+}
+
+.side-nav li.active {
+  background: #f7871f;
+}
+
+.side-nav i {
+  margin-right: 0.5rem;
+}
+
+.admin-dashboard {
+  flex: 1;
   padding: 2rem;
+  background: #f5f6fa;
+  overflow-y: auto;
 }
 
-@media (max-width: 768px) {
-  .admin-sidebar {
-    width: 70px;
-  }
+.summary-cards {
+  display: flex;
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
 
-  .admin-main {
-    margin-left: 70px;
-  }
+.summary-card {
+  flex: 1;
+  background: #f7f7f7;
+  border-radius: 10px;
+  padding: 1.2rem 1rem;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
 
-  .nav-item span,
-  .logo,
-  .admin-name {
-    display: none;
-  }
+.summary-card h3 {
+  color: #f7871f;
+  margin-bottom: 0.5rem;
+}
 
-  .nav-item {
-    justify-content: center;
-    padding: 1rem;
-  }
-
-  .nav-item i {
-    margin: 0;
-  }
-
-  .logout-btn span {
-    display: none;
-  }
-
-  .logout-btn {
-    justify-content: center;
-  }
-
-  .logout-btn i {
-    margin: 0;
-  }
+.summary-card p {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #222;
 }
 </style>

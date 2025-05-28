@@ -5,6 +5,11 @@
         <!-- Left: Login Form -->
         <div class="login-form-col">
           <div class="login-logo-row">
+            <router-link to="/home" class="icon-back-btn" aria-label="Back to Home">
+              <svg width="22" height="22" fill="none" stroke="#f7871f" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M15 19l-7-7 7-7"/>
+              </svg>
+            </router-link>
             <img src="/Designer.png" alt="PawFect" class="login-logo-img" />
             <span class="login-logo-text">PAWFECT</span>
           </div>
@@ -44,6 +49,21 @@
               {{ isLoading ? 'Logging in...' : 'Log in' }}
             </button>
           </form>
+          <div class="social-login">
+            <div class="divider">
+              <span>or continue with</span>
+            </div>
+            <div class="social-buttons">
+              <button class="social-btn google" @click="handleGoogleLogin">
+                <img src="https://www.google.com/favicon.ico" alt="Google" />
+                Google
+              </button>
+              <button class="social-btn facebook" @click="handleFacebookLogin">
+                <img src="https://www.facebook.com/favicon.ico" alt="Facebook" />
+                Facebook
+              </button>
+            </div>
+          </div>
           <div v-if="errorMessage" class="error-message">
             {{ errorMessage }}
           </div>
@@ -55,10 +75,10 @@
         <!-- Right: Illustration -->
         <div class="login-illustration-col">
           <div class="login-illustration-bg">
-            <img src="/Designer.png" alt="Pawfect" class="login-illustration-img">
+            <img src="/Designer.png" alt="Pawfect Logo" class="login-illustration-img" />
             <div class="login-illustration-text">
-              <h2>Connect with Your Pawfect Match</h2>
-              <p>Your pawfect place for adoption</p>
+              <h2>Welcome to Pawfect</h2>
+              <p>Your perfect place for pet adoption</p>
             </div>
           </div>
         </div>
@@ -68,7 +88,7 @@
 </template>
 
 <script>
-import axios from 'axios';
+import api from '@/utils/axios';
 
 export default {
   name: 'LoginPage',
@@ -98,30 +118,28 @@ export default {
       this.errorMessage = '';
 
       try {
-        const response = await axios.post('http://localhost/Pawfect-master/backend/login.php', {
+        const response = await api.post('/login', {
           email: this.loginEmail,
           password: this.loginPassword
         });
 
-        const extractedData = response.data;
+        const data = response.data;
 
-        if (extractedData && extractedData.success === true) {
-          if (extractedData.token) {
-            localStorage.setItem('token', extractedData.token);
+        if (data.success) {
+          if (data.token) {
+            localStorage.setItem('token', data.token);
           }
 
-          if (extractedData.user) {
-            localStorage.setItem('user', JSON.stringify(extractedData.user));
+          if (data.user) {
+            localStorage.setItem('user', JSON.stringify(data.user));
           }
 
           if (this.rememberMe) {
             localStorage.setItem('rememberedEmail', this.loginEmail);
-          } else {
-            localStorage.removeItem('rememberedEmail');
           }
 
           this.$nextTick(() => {
-            const targetRoute = extractedData.user && extractedData.user.role === 'admin'
+            const targetRoute = data.user && data.user.role === 'admin'
               ? '/admin'
               : '/home';
 
@@ -132,14 +150,110 @@ export default {
             });
           });
         } else {
-          this.errorMessage = (extractedData && (extractedData.message || extractedData.error)) || 'Login failed. Please check your credentials.';
+          this.errorMessage = data.message || 'Login failed. Please check your credentials.';
         }
       } catch (error) {
-        this.errorMessage = 'An error occurred during login. Please try again.';
+        console.error('Login error:', error);
+        this.errorMessage = error.response?.data?.message || 'An error occurred during login. Please try again.';
       } finally {
         this.isLoading = false;
       }
     },
+    loadGoogleScript() {
+      return new Promise((resolve, reject) => {
+        if (window.gapi) {
+          resolve();
+          return;
+        }
+        const script = document.createElement('script');
+        script.src = 'https://apis.google.com/js/platform.js';
+        script.async = true;
+        script.defer = true;
+        script.onload = () => {
+          console.log('Google API script loaded successfully');
+          resolve();
+        };
+        script.onerror = (error) => {
+          console.error('Error loading Google API script:', error);
+          reject(new Error('Failed to load Google API script'));
+        };
+        document.body.appendChild(script);
+      });
+    },
+    initGoogleAuth() {
+      return new Promise((resolve, reject) => {
+        window.gapi.load('auth2', () => {
+          window.gapi.auth2.init({
+            client_id: '982229749981-kdq2sfh74593t69foglo2r6cbbooorsj.apps.googleusercontent.com',
+            scope: 'profile email'
+          }).then((auth2) => {
+            console.log('Google Auth2 initialized successfully');
+            resolve(auth2);
+          }).catch((error) => {
+            console.error('Error initializing Google Auth2:', error);
+            reject(error);
+          });
+        });
+      });
+    },
+    async handleGoogleLogin() {
+      try {
+        this.isLoading = true;
+        this.errorMessage = '';
+
+        console.log('Starting Google login process...');
+
+        // Load the Google API client
+        await this.loadGoogleScript();
+        console.log('Google script loaded');
+
+        // Initialize Google Sign-In
+        const auth2 = await this.initGoogleAuth();
+        console.log('Google Auth2 initialized');
+
+        // Sign in with Google
+        const googleUser = await auth2.signIn();
+        console.log('Google sign-in successful');
+
+        const profile = googleUser.getBasicProfile();
+        console.log('Got user profile:', {
+          email: profile.getEmail(),
+          name: profile.getName(),
+          id: profile.getId()
+        });
+
+        // Send user data to backend
+        const response = await api.post('/login/google', {
+          email: profile.getEmail(),
+          googleId: profile.getId()
+        });
+
+        if (response.data.success) {
+          // Store token and user data
+          localStorage.setItem('token', response.data.token);
+          localStorage.setItem('user', JSON.stringify(response.data.user));
+
+          // Redirect to home page
+          this.$router.push('/home');
+        } else {
+          throw new Error(response.data.message || 'Login failed');
+        }
+      } catch (error) {
+        console.error('Google login error:', error);
+        this.errorMessage = error.message || 'Failed to login with Google. Please try again.';
+      } finally {
+        this.isLoading = false;
+      }
+    },
+    async handleFacebookLogin() {
+      try {
+        // Implement Facebook login logic here
+        console.log('Facebook login clicked');
+        // You'll need to implement the actual Facebook OAuth flow
+      } catch (error) {
+        this.errorMessage = 'Failed to login with Facebook';
+      }
+    }
   },
   mounted() {
     const rememberedEmail = localStorage.getItem('rememberedEmail');
@@ -153,32 +267,37 @@ export default {
 
 <style scoped>
 .login-bg {
-  min-height: 100vh;
+  height: 100vh;
   background: #f4f6fa;
   display: flex;
   align-items: center;
   justify-content: center;
+  position: relative;
+  overflow: hidden;
 }
+
 .login-main {
+  height: 100vh;
   width: 100vw;
-  min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 0;
 }
+
 .login-card {
   display: flex;
   background: #fff;
-  border-radius: 24px;
+  border-radius: 20px;
   box-shadow: 0 8px 40px rgba(0,0,0,0.10);
   overflow: hidden;
-  max-width: 950px;
+  max-width: 850px;
   width: 100%;
-  min-height: 600px;
+  min-height: 550px;
 }
 .login-form-col {
   flex: 1.1;
-  padding: 56px 48px 48px 48px;
+  padding: 40px 36px 36px 36px;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -187,36 +306,36 @@ export default {
 .login-logo-row {
   display: flex;
   align-items: center;
-  gap: 0.7rem;
-  margin-bottom: 1.5rem;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
 }
 .login-logo-img {
-  width: 38px;
-  height: 38px;
+  width: 32px;
+  height: 32px;
 }
 .login-logo-text {
-  font-size: 1.5rem;
+  font-size: 1.3rem;
   font-weight: 800;
   color: #f7871f;
   letter-spacing: 1px;
 }
 .login-title {
-  font-size: 2.1rem;
+  font-size: 1.8rem;
   font-weight: 700;
-  margin-bottom: 0.3rem;
+  margin-bottom: 0.2rem;
   color: #222;
   letter-spacing: 1px;
 }
 .login-sub {
   color: #888;
-  font-size: 1.05rem;
-  margin-bottom: 2.2rem;
+  font-size: 0.95rem;
+  margin-bottom: 1.5rem;
 }
 .login-main-form {
   width: 100%;
   display: flex;
   flex-direction: column;
-  gap: 1.1rem;
+  gap: 0.8rem;
 }
 .login-input-group {
   width: 100%;
@@ -225,7 +344,7 @@ export default {
   background: #f7f8fa;
   border-radius: 8px;
   border: 1.5px solid #e0e0e0;
-  margin-bottom: 0.2rem;
+  margin-bottom: 0.1rem;
   position: relative;
 }
 .login-input-icon {
@@ -238,8 +357,8 @@ export default {
   flex: 1;
   border: none;
   background: transparent;
-  padding: 0.95rem 1rem 0.95rem 0.5rem;
-  font-size: 1rem;
+  padding: 0.8rem 1rem 0.8rem 0.5rem;
+  font-size: 0.95rem;
   outline: none;
   color: #222;
 }
@@ -253,20 +372,18 @@ export default {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 0.7rem;
-  margin-top: 0.2rem;
+  margin-bottom: 0.5rem;
+  margin-top: 0.1rem;
 }
 .login-remember {
+  font-size: 0.9rem;
   display: flex;
   align-items: center;
-  font-size: 0.97rem;
+  gap: 0.5rem;
   color: #555;
-  cursor: pointer;
-  position: relative;
 }
 .login-remember input[type="checkbox"] {
   accent-color: #f7871f;
-  margin-right: 0.5rem;
 }
 .login-link {
   color: #f7871f;
@@ -281,20 +398,23 @@ export default {
 }
 .login-btn {
   width: 100%;
-  padding: 0.95rem 0;
-  background: #e99a08;
-  color: #fff;
+  padding: 1rem 0;
+  background: #dedede;
+  color: #222;
   border: none;
-  border-radius: 8px;
-  font-size: 1.1rem;
+  border-radius: 12px;
+  font-size: 1.35rem;
   font-weight: 700;
-  margin-top: 0.7rem;
+  margin-top: 0.5rem;
   cursor: pointer;
   transition: background 0.2s;
   position: relative;
+  box-shadow: none;
+  letter-spacing: 0.5px;
 }
 .login-btn:disabled {
-  background: #ccc;
+  background: #e0e0e0;
+  color: #aaa;
   cursor: not-allowed;
 }
 .login-btn .spinner {
@@ -314,10 +434,8 @@ export default {
   color: #fff;
 }
 .login-bottom-row {
-  margin-top: 1.5rem;
-  text-align: center;
-  color: #888;
-  font-size: 0.97rem;
+  margin-top: 1.2rem;
+  font-size: 0.9rem;
 }
 .login-bottom-row .login-link {
   margin-left: 0.3rem;
@@ -339,13 +457,13 @@ export default {
   align-items: center;
   justify-content: center;
   position: relative;
+  padding: 2rem;
 }
 .login-illustration-img {
-  width: 320px;
-  height: 220px;
+  width: 180px;
+  height: 180px;
   object-fit: contain;
-  margin-bottom: 2.5rem;
-  margin-top: 2.5rem;
+  margin-bottom: 2rem;
 }
 .login-illustration-text {
   color: #fff;
@@ -353,19 +471,63 @@ export default {
   max-width: 340px;
 }
 .login-illustration-text h2 {
-  font-size: 1.3rem;
+  font-size: 1.8rem;
   font-weight: 700;
-  margin-bottom: 0.7rem;
+  margin-bottom: 1rem;
 }
 .login-illustration-text p {
-  font-size: 1.05rem;
-  color: #e0e0e0;
+  font-size: 1.1rem;
+  color: #fff;
+  opacity: 0.9;
 }
 .error-message {
   color: #ff5252;
   font-size: 0.9rem;
   margin-top: 0.5rem;
   text-align: center;
+}
+.social-login {
+  margin-top: 1.2rem;
+}
+.divider {
+  margin: 0.8rem 0;
+}
+.social-buttons {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin-top: 1rem;
+}
+.social-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.9rem 2.2rem;
+  border: 1.5px solid #dedede;
+  border-radius: 12px;
+  background: #fff;
+  color: #222;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: box-shadow 0.2s, border 0.2s;
+  box-shadow: none;
+  min-width: 150px;
+}
+.social-btn img {
+  width: 24px;
+  height: 24px;
+}
+.social-btn.google {
+  border-color: #dedede;
+}
+.social-btn.facebook {
+  border-color: #dedede;
+}
+.social-btn:hover {
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  border-color: #bdbdbd;
 }
 @media (max-width: 1100px) {
   .login-card {
@@ -390,5 +552,26 @@ export default {
   .login-title {
     font-size: 1.5rem;
   }
+}
+.icon-back-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #fff;
+  border: 1.5px solid #f7871f;
+  margin-right: 0.5rem;
+  transition: background 0.2s, box-shadow 0.2s;
+  cursor: pointer;
+  text-decoration: none;
+}
+.icon-back-btn:hover {
+  background: #fef3e6;
+  box-shadow: 0 2px 8px rgba(247,135,31,0.08);
+}
+.icon-back-btn svg {
+  display: block;
 }
 </style>

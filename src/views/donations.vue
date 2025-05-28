@@ -1,75 +1,107 @@
 <template>
   <div>
     <!-- Navigation Bar -->
-    <nav class="nav-container" :class="{ 'nav-scrolled': hasScrolled }">
-      <div class="logo-container">
-        <div class="logo-image">
-          <img src="/Designer.png" alt="Pawfect" width="40" height="40">
-        </div>
-        <span class="logo-text">PAWFECT</span>
-      </div>
-
-      <div class="nav-links-container">
-        <transition name="fade">
-          <div v-if="mobileMenuOpen || !isMobile" class="nav-links" :class="{ 'mobile-active': mobileMenuOpen }">
-            <a href="/home" class="nav-link" @click="closeMenuIfMobile">Home</a>
-            <a href="/pet-profiles" class="nav-link" @click="closeMenuIfMobile">Pet Profiles</a>
-            <div class="dropdown">
-              <a href="#" class="nav-link dropdown-toggle" @click="toggleDesktopDropdown">
-                Resources <span class="dropdown-arrow" :class="{ 'arrow-rotated': (isMobile ? dropdownOpen : desktopDropdownOpen) }">▼</span>
-              </a>
-              <transition name="slide-fade">
-                <div v-if="isMobile && dropdownOpen" class="dropdown-content mobile">
-                  <a href="/training" @click="closeMenuIfMobile">Training Tips</a>
-                  <a href="/stories" @click="closeMenuIfMobile">Success Stories</a>
-                </div>
-              </transition>
-              <transition name="resources-dropdown">
-                <div v-if="!isMobile && desktopDropdownOpen" class="dropdown-content desktop">
-                  <a href="/training">Training Tips</a>
-                  <a href="/stories">Success Stories</a>
-                </div>
-              </transition>
-            </div>
-            <a href="/donations" class="nav-link active" @click="closeMenuIfMobile">Donation</a>
-            <a href="/about" class="nav-link" @click="closeMenuIfMobile">About</a>
+    <nav class="nav-bar">
+      <div class="menu-container">
+        <div class="logo"><img src="/Designer.png" alt="Logo" class="logo-img" /><router-link to="/">PAWFECT</router-link></div>
+       
+        <!-- Desktop Navigation -->
+        <ul class="nav-links">
+          <li><router-link to="/home"><i class="fas fa-home icon-fix"></i><span class="nav-text">Home</span></router-link></li>
+          <li><router-link to="/pet-profiles"><i class="fas fa-paw icon-fix"></i><span class="nav-text">Pet Profiles</span></router-link></li>
+         
+          <!-- Resources Dropdown -->
+          <li class="dropdown"
+            @mouseenter="handleResourcesMouseEnter"
+            @mouseleave="handleResourcesMouseLeave">
+            <a href="#" @click.prevent="handleResourcesClick" aria-haspopup="true" :aria-expanded="showResourcesDropdown">
+              <i class="fas fa-book icon-fix"></i><span class="nav-text">Resources</span><i class="fas fa-chevron-down dropdown-arrow"></i>
+            </a>
+            <ul class="dropdown-menu" v-show="showResourcesDropdown" :aria-expanded="showResourcesDropdown">
+              <li><router-link to="/training"><i class="fas fa-paw"></i>Training Tips</router-link></li>
+              <li><router-link to="/stories"><i class="fas fa-dog"></i>Success Stories</router-link></li>
+            </ul>
+          </li>
+         
+          <li><router-link to="/donations"><i class="fas fa-heart icon-fix"></i><span class="nav-text">Donation</span></router-link></li>
+         
+          <!-- User Profile Dropdown -->
+          <li class="dropdown user-dropdown"
+            @mouseenter="handleAccountMouseEnter"
+            @mouseleave="handleAccountMouseLeave">
+            <a href="#" @click.prevent="handleAccountClick" aria-haspopup="true" :aria-expanded="showUserDropdown">
+              <i class="fas fa-user-circle icon-fix"></i><span class="nav-text">Account</span><i class="fas fa-chevron-down dropdown-arrow"></i>
+            </a>
+            <ul class="dropdown-menu user-dropdown-menu" v-show="showUserDropdown" :aria-expanded="showUserDropdown">
+              <li><router-link to="/status" class="dropdown-item profile-item"><i class="fas fa-user"></i>Profile</router-link></li>
+              <li><a href="#" @click.prevent="handleLogout" class="dropdown-item logout-item"><i class="fas fa-sign-out-alt"></i>Logout</a></li>
+            </ul>
+          </li>
+        </ul>
+       
+        <!-- Mobile Menu Button -->
+        <label class="mobile-menu-button" for="check" @click="closeAllDropdowns">
+          <div class="hamburger-icon">
+            <span class="bar"></span>
+            <span class="bar"></span>
+            <span class="bar"></span>
           </div>
-        </transition>
-      </div>
-
-      <div class="right-section">
-        <div class="user-dropdown">
-          <div class="user-icon" role="button" aria-label="User profile" tabindex="0" @click="toggleUserDropdown">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-              <circle cx="12" cy="7" r="4"></circle>
-            </svg>
-          </div>
-
-          <transition name="dropdown-animation">
-            <div v-if="userDropdownOpen" class="user-dropdown-content" :class="{ 'mobile-dropdown': isMobile }">
-              <div class="dropdown-header">
-                <span>User Menu</span>
-                <button class="close-dropdown-btn" @click="closeUserDropdown" aria-label="Close menu">
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                    <line x1="18" y1="6" x2="6" y2="18"></line>
-                    <line x1="6" y1="6" x2="18" y2="18"></line>
-                  </svg>
-                </button>
-              </div>
-              <a href="profile" @click.stop>Profile</a>
-              <a href="#" @click.stop>Log Out</a>
-            </div>
-          </transition>
-        </div>
-
-        <button class="mobile-menu-toggle" aria-label="Toggle menu" @click="toggleMobileMenu">
-          <div class="bar" :class="{ 'bar-1-active': mobileMenuOpen }"></div>
-          <div class="bar" :class="{ 'bar-2-active': mobileMenuOpen }"></div>
-          <div class="bar" :class="{ 'bar-3-active': mobileMenuOpen }"></div>
-        </button>
+        </label>
       </div>
     </nav>
+
+    <!-- Mobile Sidebar -->
+    <input type="checkbox" id="check" v-model="sidebarOpen" class="hidden-checkbox">
+   
+    <div class="side_bar">
+      <div class="sidebar-header">
+        <div class="logo">PAWFECT</div>
+        <label class="close-sidebar" for="check" @click="closeAllDropdowns">
+          <i class="fas fa-times"></i>
+        </label>
+      </div>
+     
+      <div class="sidebar-content">
+        <ul class="sidebar-links">
+          <li><router-link to="/home" @click="closeAllDropdowns"><i class="fas fa-home icon-fix"></i><span>Home</span></router-link></li>
+          <li><router-link to="/pet-profiles" @click="closeAllDropdowns"><i class="fas fa-paw icon-fix"></i><span>Pet Profiles</span></router-link></li>
+         
+          <!-- Mobile Resources Dropdown -->
+          <li class="mobile-dropdown">
+            <a href="#" @click.prevent="toggleMobileResourcesDropdown">
+              <i class="fas fa-book icon-fix"></i><span>Resources</span>
+              <i class="fas fa-chevron-down dropdown-arrow" :class="{ 'rotate-arrow': showMobileResourcesDropdown }"></i>
+            </a>
+            <ul class="mobile-dropdown-menu" v-show="showMobileResourcesDropdown">
+              <li><router-link to="/training"><i class="fas fa-paw"></i>Training Tips</router-link></li>
+              <li><router-link to="/stories"><i class="fas fa-dog"></i>Success Stories</router-link></li>
+            </ul>
+          </li>
+         
+          <li><router-link to="/donations" @click="closeAllDropdowns"><i class="fas fa-heart icon-fix"></i><span>Donation</span></router-link></li>
+         
+          <!-- Mobile User Dropdown -->
+          <li class="mobile-dropdown">
+            <a href="#" @click="toggleMobileUserDropdown">
+              <i class="fas fa-user-circle icon-fix"></i><span>Account</span>
+              <i class="fas fa-chevron-down dropdown-arrow" :class="{ 'rotate-arrow': showMobileUserDropdown }"></i>
+            </a>
+            <ul class="mobile-dropdown-menu" v-show="showMobileUserDropdown">
+              <li><a href="status" class="dropdown-item profile-item"><i class="fas fa-user"></i>Profile</a></li>
+              <li><a href="#" class="dropdown-item logout-item"><i class="fas fa-sign-out-alt"></i>Logout</a></li>
+            </ul>
+          </li>
+        </ul>
+       
+        <div class="sidebar-footer">
+          <div class="media_icons">
+            <a href="#"><i class="fab fa-facebook-f"></i></a>
+            <a href="#"><i class="fab fa-instagram"></i></a>
+            <a href="#"><i class="fab fa-google"></i></a>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <div class="donation-container">
       <!-- Donation Header Section -->
@@ -108,7 +140,7 @@
               <p>SCAN TO DONATE</p>
             </div>
             <div class="qr-code-placeholder">
-               <img src="/Img/qr.jpg" alt="Pawfect" width="100%" height="100%">
+               <img src="/Img/qr.jpg" alt="Pawfect" width="100%" height="100%"> 
             </div>
           </div>
         </div>
@@ -118,14 +150,10 @@
       <div class="volunteer-card">
         <div class="volunteer-header">Become a volunteer</div>
         <p class="volunteer-text">
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed tincidunt porta orci, non porttitor lobortis.
-          Nullam efficace congue lorem sit finibus enim tristiquam hendrerit vel risps, eu feugiat. Maecenas
-          cursus lorem eget tempus convallis.
+          Join the Pawfect family and help make a difference in the lives of rescued animals. As a volunteer, you’ll play a vital role in caring for pets, supporting adoption events, and spreading awareness in the community.
         </p>
         <p class="volunteer-text">
-          Aenean ornare nulla ac mollis euismod. Interdum et malesuada fames ac ante ipsum primis in faucibus.
-          Proin rutrum libero consequat, suscipit sem non, vestibulum ipsum. Mauris venenatis vestibulum nunc a
-          tempus.
+          Your time and compassion can bring hope and happiness to our furry friends. Whether it’s walking dogs, assisting with shelter tasks, or helping match pets with their perfect homes, there’s a place for you at Pawfect.Together, we can create a better world—one paw at a time.
         </p>
       </div>
 
@@ -137,13 +165,13 @@
             <!-- Left Column (tall featured image + smaller image below) -->
             <div class="gallery-left">
               <div class="feature-image">
-                 <img src="/Img/dog2.png" alt="Featured pet" class="placeholder-img">
+                 <img src="/Img/dog2.png" alt="Featured pet" class="placeholder-img"> 
                 <div class="image-overlay">
                   <p class="overlay-text">Featured Pet</p>
                 </div>
               </div>
               <div class="small-image">
-                 <img src="/Img/dog1.png" alt="Pet image" class="placeholder-img">
+                 <img src="/Img/dog1.png" alt="Pet image" class="placeholder-img"> 
                 <div class="image-overlay">
                   <p class="overlay-text">Rescued</p>
                 </div>
@@ -155,7 +183,7 @@
               <!-- Top Row (image + text box) -->
               <div class="gallery-top">
                 <div class="medium-image">
-                   <img src="/Img/dog3.png" alt="Pet image" class="placeholder-img">
+                   <img src="/Img/dog3.png" alt="Pet image" class="placeholder-img"> 
                   <div class="image-overlay">
                     <p class="overlay-text">Medical Care</p>
                   </div>
@@ -173,7 +201,7 @@
               <!-- Bottom Row (two images side by side) -->
               <div class="bottom-row">
                 <div class="medium-image">
-                   <img src="/Img/dog4.jpg" alt="Pet image" class="placeholder-img">
+                   <img src="/Img/dog4.jpg" alt="Pet image" class="placeholder-img"> 
                   <div class="image-overlay">
                     <p class="overlay-text">Adoption Ready</p>
                   </div>
@@ -197,16 +225,13 @@
         Dui cursus sit ornare dolor turpis in.
       </p>
       <div class="button-group">
-        <button class="btn primary">Browse Pets</button>
+        <router-link to="/pet-profiles" class="btn primary">Browse Pets</router-link>
       </div>
     </div>
     <div class="browse-right">
-      <div class="image-box">
-        <!-- <img src="https://via.placeholder.com/60" alt="Pet Icon" /> -->
-      </div>
       <div class="counter-box">
         <div class="count">17</div>
-        <div class="label">Number of Pets</div>
+        <div class="label">Pawfect Pets</div>
       </div>
     </div>
   </div>
@@ -217,23 +242,22 @@
 <footer class="footer">
   <div class="footer-container">
     <div class="footer-column logo-column">
-      <!-- <img src="/Designer.png" alt="Pawfect" width="40" height="40"> -->
+       <img src="/Designer.png" alt="Pawfect" width="40" height="40"> 
       <span class="Footer-logo-text">PAWFECT</span>
       <p class="footer-description">Helping paws find their forever home.</p>
     </div>
     <div class="footer-column">
       <h4>Quick Links</h4>
       <ul>
-        <li><a href="#">Home</a></li>
-        <li><a href="#">Pet Profiles</a></li>
-        <li><a href="#">Resources</a></li>
-        <li><a href="#">Donate</a></li>
-        <li><a href="#">Contact</a></li>
+        <li><router-link to="/home">Home</router-link></li>
+        <li><router-link to="/pet-profiles">Pet Profiles</router-link></li>
+        <li><router-link to="/training">Resources</router-link></li>
+        <li><router-link to="/donations">Donate</router-link></li>
       </ul>
     </div>
     <div class="footer-column">
       <h4>Contact</h4>
-      <p>Email: support@pawfect.com</p>
+      <p>Email: pawfectmatch5@gmail.com</p>
       <p>Phone: +123 456 7890</p>
       <p>Location: Gordon College, Olongapo</p>
     </div>
@@ -255,7 +279,12 @@ export default {
       desktopDropdownOpen: false,
       userDropdownOpen: false,
       isMobile: false,
-      hasScrolled: false
+      hasScrolled: false,
+      sidebarOpen: false,
+      showResourcesDropdown: false,
+      showMobileResourcesDropdown: false,
+      showUserDropdown: false,
+      showMobileUserDropdown: false
     }
   },
   mounted() {
@@ -336,6 +365,41 @@ export default {
       if (this.desktopDropdownOpen && resourcesDropdownToggle && !resourcesDropdownToggle.contains(event.target) && resourcesDropdownContent && !resourcesDropdownContent.contains(event.target)) {
         this.desktopDropdownOpen = false;
       }
+    },
+    handleResourcesMouseEnter() {
+      this.showResourcesDropdown = true;
+    },
+    handleResourcesMouseLeave() {
+      this.showResourcesDropdown = false;
+    },
+    handleResourcesClick() {
+      // Handle resources click
+    },
+    handleAccountMouseEnter() {
+      this.showUserDropdown = true;
+    },
+    handleAccountMouseLeave() {
+      this.showUserDropdown = false;
+    },
+    handleAccountClick() {
+      // Handle account click
+    },
+    toggleMobileResourcesDropdown() {
+      this.showMobileResourcesDropdown = !this.showMobileResourcesDropdown;
+    },
+    toggleMobileUserDropdown() {
+      this.showMobileUserDropdown = !this.showMobileUserDropdown;
+    },
+    closeAllDropdowns() {
+      this.mobileMenuOpen = false;
+      this.dropdownOpen = false;
+      this.desktopDropdownOpen = false;
+      this.userDropdownOpen = false;
+      this.showResourcesDropdown = false;
+      this.showUserDropdown = false;
+      this.showMobileResourcesDropdown = false;
+      this.showMobileUserDropdown = false;
+      document.body.classList.remove('no-scroll');
     }
   }
 }
@@ -360,446 +424,601 @@ body.no-scroll {
 }
 
 /* Navigation Bar Styles */
-.nav-container {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background-color: #F9A826;
-  padding: 0.75rem 2rem;
-  color: white;
-  position: sticky;
+.nav-bar {
+  width: 100%;
+  height: var(--nav-height);
+  background: var(--bg-color);
+  position: fixed;
   top: 0;
   left: 0;
-  right: 0;
-  width: 100%;
   z-index: 1000;
-  transition: all 0.3s ease;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
-.nav-scrolled {
-  padding: 0.5rem 2rem;
-  background-color: rgba(249, 168, 38, 0.95);
-  backdrop-filter: blur(10px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+.menu-container {
+  max-width: 1400px;
+  height: 100%;
+  margin: 0 auto;
+  padding: 0 5px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
-.logo-container {
+.logo {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
 }
 
-.logo-image {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: transform 0.3s ease;
-}
-
-.logo-container:hover .logo-image {
-  transform: scale(1.1) rotate(5deg);
-}
-
-.logo-text {
-  font-size: 1.75rem;
+.logo a {
+  font-size: 1.8rem;
   font-weight: 800;
-  letter-spacing: 1.5px;
-  color: white;
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
-  transition: transform 0.3s ease;
+  text-decoration: none;
+  color: var(--primary-color);
+  letter-spacing: 1px;
+  transition: var(--transition);
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
 }
 
-.logo-container:hover .logo-text {
-  transform: translateX(3px);
+.logo a:hover {
+  transform: scale(1.05);
 }
 
-.nav-links-container {
+/* Desktop Navigation */
+.nav-links {
+  list-style: none;
+  display: flex;
+  gap: 10px;
+}
+
+.nav-links li {
+  display: flex;
+  align-items: center;
+}
+
+.nav-links a {
+  text-decoration: none;
+  font-size: 1rem;
+  color: var(--text-color);
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  padding: 10px 10px;
+  border-radius: 15px;
+  transition: var(--transition);
+  background: var(--bg-color);
+  box-shadow:
+    8px 8px 16px var(--shadow-dark),
+    -8px -8px 16px var(--shadow-light);
+  white-space: nowrap;
+}
+
+.nav-links a:hover {
+  color: var(--primary-color);
+  transform: translateY(-2px);
+  box-shadow:
+    4px 4px 8px var(--shadow-dark),
+    -4px -4px 8px var(--shadow-light);
+}
+
+.nav-links a:active {
+  transform: translateY(0);
+  box-shadow:
+    inset 3px 3px 6px var(--shadow-dark),
+    inset -3px -3px 6px var(--shadow-light);
+}
+
+.nav-text {
+  margin-left: 8px;
+}
+
+.icon-fix {
+  width: 20px;
+  text-align: center;
+  color: var(--primary-color);
+  transition: var(--transition);
+}
+
+.nav-links a:hover .icon-fix {
+  transform: scale(1.2);
+}
+
+/* Mobile Menu Button */
+.mobile-menu-button {
+  display: none;
+  cursor: pointer;
+  padding: 10px;
+  border-radius: 8px;
+  transition: var(--transition);
+  background: var(--bg-color);
+  box-shadow:
+    5px 5px 10px var(--shadow-dark),
+    -5px -5px 10px var(--shadow-light);
+  width: 40px;
+  height: 40px;
+  justify-content: center;
+  align-items: center;
+}
+
+.hamburger-icon {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  width: 20px;
+  height: 14px;
+}
+
+.hamburger-icon .bar {
+  height: 2px;
+  width: 100%;
+  background-color: var(--text-color);
+  transition: var(--transition);
+  border-radius: 2px;
+}
+
+.mobile-menu-button:hover {
+  transform: scale(1.05);
+}
+
+.mobile-menu-button:hover .bar {
+  background-color: var(--primary-color);
+}
+
+/* Transform hamburger to X when sidebar is open */
+.hidden-checkbox:checked ~ .nav-bar .mobile-menu-button .hamburger-icon .bar:nth-child(1) {
+  transform: translateY(6px) rotate(45deg);
+}
+
+.hidden-checkbox:checked ~ .nav-bar .mobile-menu-button .hamburger-icon .bar:nth-child(2) {
+  opacity: 0;
+}
+
+.hidden-checkbox:checked ~ .nav-bar .mobile-menu-button .hamburger-icon .bar:nth-child(3) {
+  transform: translateY(-6px) rotate(-45deg);
+}
+
+/* Sidebar Styles */
+.side_bar {
+  background: var(--bg-color);
+  position: fixed;
+  top: 0;
+  left: -100%;
+  height: 100%;
+  width: var(--sidebar-width);
+  z-index: 1001;
+  transition: var(--transition);
+  box-shadow: 10px 0 20px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+
+.hidden-checkbox:checked ~ .side_bar {
+  left: 0;
+}
+
+.sidebar-header {
+  height: var(--nav-height);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  border-bottom: 1px solid rgba(0,0,0,0.1);
+}
+
+.sidebar-content {
   flex: 1;
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  padding: 20px;
+  overflow-y: auto;
 }
 
-.nav-links {
-  display: flex;
-  gap: 2rem;
-  align-items: center;
+.sidebar-links {
+  list-style: none;
+  margin-bottom: 20px;
 }
 
-.nav-link {
-  color: white;
-  text-decoration: none;
-  font-size: 1.1rem;
-  font-weight: 600;
+.sidebar-links li {
+  margin-bottom: 15px;
+}
+
+.sidebar-links a {
   position: relative;
-  padding: 0.5rem 0;
-  transition: all 0.2s ease;
-  cursor: pointer;
-}
-
-.nav-link:after {
-  content: '';
-  position: absolute;
-  width: 0;
-  height: 2px;
-  bottom: 0;
-  left: 0;
-  background-color: white;
-  transition: width 0.3s ease;
-}
-
-.nav-link:hover:after {
+  color: var(--text-color);
+  text-decoration: none;
+  font-size: 1rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
   width: 100%;
+  border-radius: 12px;
+  padding: 15px 20px;
+  transition: var(--transition);
+  background: var(--bg-color);
+  box-shadow:
+    5px 5px 10px var(--shadow-dark),
+    -5px -5px 10px var(--shadow-light);
 }
 
+.sidebar-links a:hover {
+  color: var(--primary-color);
+  padding-left: 25px;
+  transform: translateX(5px);
+  box-shadow:
+    3px 3px 6px var(--shadow-dark),
+    -3px -3px 6px var(--shadow-light);
+}
+
+.sidebar-links a:active {
+  transform: translateX(5px) scale(0.98);
+  box-shadow:
+    inset 2px 2px 5px var(--shadow-dark),
+    inset -2px -2px 5px var(--shadow-light);
+}
+
+.sidebar-footer {
+  padding: 20px 0;
+  margin-top: auto;
+}
+
+.media_icons {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+}
+
+.media_icons a {
+  height: 45px;
+  width: 45px;
+  border-radius: 50%;
+  text-align: center;
+  line-height: 45px;
+  color: var(--text-color);
+  font-size: 1.1rem;
+  background: var(--bg-color);
+  transition: var(--transition);
+  box-shadow:
+    5px 5px 10px var(--shadow-dark),
+    -5px -5px 10px var(--shadow-light);
+}
+
+.media_icons a:hover {
+  color: var(--primary-color);
+  transform: translateY(-3px) scale(1.1);
+}
+
+.close-sidebar {
+  height: 40px;
+  width: 40px;
+  text-align: center;
+  line-height: 40px;
+  cursor: pointer;
+  transition: var(--transition);
+  color: var(--text-color);
+  background: var(--bg-color);
+  border-radius: 50%;
+  box-shadow:
+    3px 3px 6px var(--shadow-dark),
+    -3px -3px 6px var(--shadow-light);
+}
+
+.close-sidebar:hover {
+  color: var(--primary-color);
+  transform: rotate(90deg);
+}
+
+/* Dropdown Styles */
 .dropdown {
   position: relative;
 }
 
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  min-width: 200px;
+  background: var(--bg-color);
+  border-radius: 0;
+  padding: 10px 0;
+  box-shadow:
+    0 8px 24px rgba(0,0,0,0.10),
+    8px 8px 16px var(--shadow-dark),
+    -8px -8px 16px var(--shadow-light);
+  z-index: 1000;
+  animation: fadeIn 0.3s ease;
+  transition: opacity 0.2s, transform 0.2s;
+  right: auto;
+}
+
+.dropdown-menu[aria-expanded="true"] {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
+.dropdown-menu[aria-expanded="false"] {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-10px);
+}
+
+.dropdown-menu li {
+  margin: 0;
+}
+
+.dropdown-item {
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  color: var(--text-color);
+  white-space: nowrap;
+  width: 100%;
+  transition: all 0.3s ease;
+}
+
+.dropdown-item i {
+  margin-right: 10px;
+  width: 20px;
+  text-align: center;
+}
+
+/* Profile Item - Subtle Highlight */
+.profile-item:hover {
+  background: rgba(255,145,77,0.1);
+  color: var(--primary-color);
+}
+
+/* Logout Item - Standout Highlight */
+.logout-item:hover {
+  background: rgba(255, 80, 80, 0.1);
+  color: #ff5050;
+  font-weight: 600;
+}
+
 .dropdown-arrow {
-  font-size: 0.7rem;
-  vertical-align: middle;
-  margin-left: 4px;
+  margin-left: 8px;
+  font-size: 0.8rem;
   transition: transform 0.3s ease;
 }
 
-.arrow-rotated {
+.dropdown:hover .dropdown-arrow {
   transform: rotate(180deg);
 }
 
-.dropdown-content {
-  min-width: 180px;
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
-  border-radius: 8px;
-  overflow: hidden;
-  z-index: 1;
-}
-
-.dropdown-content.desktop {
-  position: absolute;
-  top: 100%;
-  left: 50%;
-  transform: translateX(-50%);
-  margin-top: 0.75rem;
-  background-color: white;
-  z-index: 1001;
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
-  border-radius: 8px;
-}
-
-.dropdown-content a {
-  padding: 0.75rem 1rem;
-  text-decoration: none;
-  display: block;
-  transition: all 0.2s ease;
-  cursor: pointer;
-}
-
-.dropdown-content.desktop a {
-  color: #333;
-  font-weight: 500;
-}
-
-.dropdown-content.desktop a:hover {
-  background-color: #f8f8f8;
-  padding-left: 1.25rem;
-}
-
-.dropdown-content.mobile {
-  background-color: rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
-  margin-top: 0.5rem;
-}
-
-.dropdown-content.mobile a {
-  color: white;
-  padding: 0.75rem 1.5rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.dropdown-content.mobile a:last-child {
-  border-bottom: none;
-}
-
-.right-section {
-  display: flex;
-  align-items: center;
-  gap: 1.5rem;
-}
-
-.user-dropdown {
-  position: relative;
-}
-
-.user-icon {
-  color: white;
-  cursor: pointer;
-  width: 36px;
-  height: 36px;
-  background-color: rgba(255, 255, 255, 0.2);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.3s ease;
-}
-
-.user-icon:hover {
-  transform: scale(1.1);
-  background-color: rgba(255, 255, 255, 0.3);
-}
-
-.user-dropdown-content {
-  position: absolute;
-  top: calc(100% + 0.5rem);
+/* User Dropdown Specific */
+.user-dropdown-menu {
   right: 0;
-  background-color: white;
-  min-width: 220px;
-  max-width: 90vw;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
-  border-radius: 12px;
-  overflow: hidden;
-  z-index: 1001;
-  border: 1px solid rgba(0, 0, 0, 0.08);
+  left: auto;
+  min-width: 180px;
+  border-radius: 0;
+  transition: opacity 0.2s, transform 0.2s;
+  animation: fadeIn 0.3s ease;
 }
 
-.dropdown-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0.75rem 1rem;
-  background-color: #f8f8f8;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+/* Mobile Dropdown Styles */
+.mobile-dropdown-menu {
+  padding-left: 20px;
+  margin-top: 5px;
+  animation: fadeIn 0.3s ease;
 }
 
-.dropdown-header span {
+.mobile-dropdown-menu li {
+  margin-bottom: 5px;
+}
+
+.mobile-dropdown-menu .dropdown-item {
+  padding: 10px 15px;
+}
+
+.mobile-dropdown-menu .profile-item:hover {
+  background: rgba(255,145,77,0.1);
+  color: var(--primary-color);
+  padding-left: 25px;
+}
+
+.mobile-dropdown-menu .logout-item:hover {
+  background: rgba(255, 80, 80, 0.1);
+  color: #ff5050;
   font-weight: 600;
-  color: #333;
+  padding-left: 25px;
 }
 
-.close-dropdown-btn {
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  color: #666;
-  transition: all 0.2s ease;
-}
-
-.close-dropdown-btn:hover {
-  background-color: rgba(0, 0, 0, 0.05);
-  color: #333;
-}
-
-.user-dropdown-content a {
-  color: #333;
-  padding: 0.9rem 1.2rem;
-  text-decoration: none;
-  display: block;
-  font-weight: 500;
-  transition: all 0.2s ease;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-}
-
-.user-dropdown-content a:last-child {
-  border-bottom: none;
-}
-
-.user-dropdown-content a:hover {
-  background-color: #f8f8f8;
-  padding-left: 1.5rem;
-}
-
-.user-dropdown-content.mobile-dropdown {
-  position: absolute;
-  width: auto;
-  min-width: 220px;
-  max-width: 90vw;
+.rotate-arrow {
+  transform: rotate(180deg);
 }
 
 /* Animations */
-.dropdown-animation-enter-active {
-  animation: dropdownIn 0.3s ease-out forwards;
-}
-.dropdown-animation-leave-active {
-  animation: dropdownOut 0.3s ease-in forwards;
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-@keyframes dropdownIn {
-  0% { opacity: 0; transform: translateY(-10px); }
-  60% { transform: translateY(5px); }
-  100% { opacity: 1; transform: translateY(0); }
+/* Responsive Styles */
+@media (max-width: 1024px) {
+  .nav-links a {
+    padding: 10px 15px;
+    font-size: 0.9rem;
+  }
 }
 
-@keyframes dropdownOut {
-  0% { opacity: 1; transform: translateY(0); }
-  100% { opacity: 0; transform: translateY(-10px); }
-}
-
-.resources-dropdown-enter-active {
-  animation: dropdownResourcesIn 0.3s ease-out forwards;
-}
-.resources-dropdown-leave-active {
-  animation: dropdownResourcesOut 0.3s ease-in forwards;
-}
-
-@keyframes dropdownResourcesIn {
-  0% { opacity: 0; transform: translateY(-10px) translateX(-50%); }
-  60% { transform: translateY(5px) translateX(-50%); }
-  100% { opacity: 1; transform: translateY(0) translateX(-50%); }
-}
-
-@keyframes dropdownResourcesOut {
-  0% { opacity: 1; transform: translateY(0) translateX(-50%); }
-  100% { opacity: 0; transform: translateY(-10px) translateX(-50%); }
-}
-
-.mobile-menu-toggle {
-  display: none;
-  flex-direction: column;
-  justify-content: space-between;
-  width: 28px;
-  height: 20px;
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  padding: 0;
-  z-index: 1005;
-}
-
-.bar {
-  height: 3px;
-  width: 100%;
-  background-color: white;
-  border-radius: 10px;
-  transition: all 0.3s ease-in-out;
-}
-
-.bar-1-active { transform: translateY(8px) rotate(45deg); }
-.bar-2-active { opacity: 0; }
-.bar-3-active { transform: translateY(-8px) rotate(-45deg); }
-
-/* Transitions */
-.fade-enter-active, .fade-leave-active {
-  transition: opacity 0.3s ease;
-}
-
-.fade-enter-from, .fade-leave-to {
-  opacity: 0;
-}
-
-.slide-fade-enter-active, .slide-fade-leave-active {
-  transition: all 0.3s ease;
-}
-
-.slide-fade-enter-from, .slide-fade-leave-to {
-  transform: translateY(-20px);
-  opacity: 0;
-}
-
-/* Media Queries */
 @media (max-width: 900px) {
-  .nav-links {
-    gap: 1.5rem;
+  .nav-links a .nav-text {
+    display: none;
+  }
+ 
+  .nav-links a {
+    padding: 12px;
+    border-radius: 50%;
+  }
+ 
+  .icon-fix {
+    margin-right: 0;
+    font-size: 1.1rem;
   }
 }
 
 @media (max-width: 768px) {
-  .nav-container {
-    padding: 0.75rem 1.25rem;
-  }
-  .logo-text {
-    font-size: 1.5rem;
-  }
-  .mobile-menu-toggle {
-    display: flex;
-  }
-  .nav-links-container {
-    position: static;
-  }
   .nav-links {
-    position: fixed;
-    top: 0;
+    display: none !important;
+  }
+  .mobile-menu-button {
+    display: flex !important;
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    z-index: 1100;
+  }
+  .side_bar {
+    width: var(--sidebar-width);
+    max-width: 100vw;
+    min-width: 260px;
+    left: -100%;
+    box-shadow: 8px 0 24px rgba(0,0,0,0.08);
+    border-top-right-radius: 16px;
+    border-bottom-right-radius: 16px;
+    background: var(--bg-color);
+    padding-top: 0;
+  }
+  .hidden-checkbox:checked ~ .side_bar {
     left: 0;
-    right: 0;
-    bottom: 0;
-    flex-direction: column;
-    justify-content: center;
+  }
+  .sidebar-header {
+    padding: 0 20px;
+    height: 70px;
+    border-bottom: none;
+    box-shadow: none;
+    background: var(--bg-color);
+    border-top-right-radius: 16px;
+  }
+  .sidebar-links {
+    margin-top: 20px;
+  }
+  .sidebar-links a {
+    margin-bottom: 10px;
+    box-shadow:
+      4px 4px 12px var(--shadow-dark),
+      -4px -4px 12px var(--shadow-light);
+    background: var(--bg-color);
+    border-radius: 12px;
+    padding: 12px 20px;
+    font-size: 1rem;
+    color: var(--text-color);
+    display: flex;
     align-items: center;
-    background-color: #F9A826;
-    padding: 2rem;
-    gap: 1.5rem;
-    z-index: 1000;
-    transition: transform 0.3s ease;
-    transform: translateX(100%);
-    overflow-y: auto;
-    padding-top: 5rem;
-    width: 100vw;
-    margin: 0;
+    gap: 10px;
+    transition: var(--transition);
   }
-  .nav-links.mobile-active {
-    transform: translateX(0);
+  .sidebar-links a:hover {
+    color: var(--primary-color);
+    background: #fff7f0;
+    box-shadow:
+      2px 2px 6px var(--shadow-dark),
+      -2px -2px 6px var(--shadow-light);
   }
-  .nav-link {
-    font-size: 1.3rem;
+  .sidebar-footer {
+    margin-top: auto;
+    padding-bottom: 24px;
+    display: flex;
+    justify-content: center;
   }
-  .nav-link:after {
-    height: 3px;
+  .media_icons {
+    display: flex;
+    gap: 18px;
+  }
+  .media_icons a {
+    height: 40px;
+    width: 40px;
+    border-radius: 50%;
+    background: var(--bg-color);
+    box-shadow:
+      2px 2px 8px var(--shadow-dark),
+      -2px -2px 8px var(--shadow-light);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-color);
+    font-size: 1.1rem;
+    transition: var(--transition);
+  }
+  .media_icons a:hover {
+    color: var(--primary-color);
+    background: #fff7f0;
+    transform: scale(1.08);
+  }
+  .close-sidebar {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    z-index: 1200;
+    background: var(--bg-color);
+    box-shadow:
+      2px 2px 8px var(--shadow-dark),
+      -2px -2px 8px var(--shadow-light);
   }
 }
 
 @media (max-width: 480px) {
-  .nav-container {
-    padding: 0.75rem 1rem;
+  .menu-container {
+    padding: 0 15px;
   }
-  .logo-text {
-    font-size: 1.3rem;
+ 
+  .logo a {
+    font-size: 1.5rem;
   }
-  .user-icon {
-    width: 32px;
-    height: 32px;
+ 
+  .side_bar {
+    width: 100vw;
+    min-width: 0;
+    border-radius: 0;
   }
-  .nav-links.mobile-active {
-    padding: 1.5rem;
-    gap: 1.25rem;
+  .sidebar-header {
+    border-radius: 0;
   }
-}
-
-@media (max-width: 320px) {
-  .nav-container {
-    padding: 0.75rem 0.5rem;
-  }
-  .logo-text {
-    font-size: 1.1rem;
-  }
-  .right-section {
-    gap: 0.75rem;
-  }
-  .user-dropdown-content {
-    min-width: 200px;
+  .sidebar-links a {
+    padding: 15px 20px;
   }
 }
 
-@media (max-width: 245px) {
-  .logo-text {
-    font-size: 0.9rem;
-  }
-  .user-icon {
-    width: 28px;
-    height: 28px;
-  }
-  .nav-container {
-    padding: 0.5rem 0.25rem;
-  }
-  .user-dropdown-content {
+.logo-img {
+  height: 38px;
+  width: 38px;
+  margin-right: 10px;
+}
+
+.dropdown-menu i,
+.mobile-dropdown-menu i {
+  margin-right: 10px;
+}
+
+@media (max-width: 1200px) {
+  .dropdown-menu {
+    right: 0;
+    left: auto;
     min-width: 180px;
-    right: -20px;
+    max-width: 90vw;
   }
+}
+
+.dropdown-menu li a,
+.user-dropdown-menu li a {
+  transition: background 0.2s, color 0.2s;
+  outline: none;
+}
+
+.dropdown-menu li a:hover,
+.user-dropdown-menu li a:hover,
+.dropdown-menu li a:focus,
+.user-dropdown-menu li a:focus {
+  background: rgba(255,145,77,0.12);
+  color: var(--primary-color);
+}
+
+.dropdown-menu li a:hover i,
+.user-dropdown-menu li a:hover i,
+.dropdown-menu li a:focus i,
+.user-dropdown-menu li a:focus i {
+  color: var(--primary-color);
 }
 
 /* Donation page styles */
@@ -810,6 +1029,7 @@ body.no-scroll {
   display: flex;
   flex-direction: column;
   gap: 2rem;
+  margin-top: var(--nav-height);
 }
 
 /* Donation Header Section */

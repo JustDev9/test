@@ -1,86 +1,124 @@
 <template>
     <div>
-      <nav class="nav-container" :class="{ 'nav-scrolled': hasScrolled }">
-        <div class="logo-container">
-          <div class="logo-image">
-             <img src="/Designer.png" alt="Pawfect" width="40" height="40"> 
-          </div>
-          <span class="logo-text">PAWFECT</span>
-        </div>
+      <!-- Navigation Bar -->
+      <nav class="nav-bar">
+        <div class="menu-container">
+          <div class="logo"><img src="/Designer.png" alt="Logo" class="logo-img" /><router-link to="/">PAWFECT</router-link></div>
 
-        <div class="nav-links-container">
-          <transition name="fade">
-            <div v-if="mobileMenuOpen || !isMobile" class="nav-links" :class="{ 'mobile-active': mobileMenuOpen }">
-              <a href="home" class="nav-link" @click="closeMenuIfMobile">Home</a>
-              <a href="pet-profiles" class="nav-link" @click="closeMenuIfMobile">Pet Profiles</a>
-              <div class="dropdown">
-                <a href="#" class="nav-link dropdown-toggle" @click="toggleDesktopDropdown">
-                  Resources <span class="dropdown-arrow" :class="{ 'arrow-rotated': (isMobile ? dropdownOpen : desktopDropdownOpen) }">▼</span>
-                </a>
-                <transition name="slide-fade">
-                  <div v-if="isMobile && dropdownOpen" class="dropdown-content mobile">
-                    <a href="training" @click="closeMenuIfMobile">Training Tips</a>
-                    <a href="stories" @click="closeMenuIfMobile">Success Stories</a>
-                  </div>
-                </transition>
-                <transition name="resources-dropdown">
-                  <div v-if="!isMobile && desktopDropdownOpen" class="dropdown-content desktop">
-                    <a href="training">Training Tips</a>
-                    <a href="stories">Success Stories</a>
-                  </div>
-                </transition>
-              </div>
-              <a href="donations" class="nav-link" @click="closeMenuIfMobile">Donation</a>
-              <a href="stories" class="nav-link" @click="closeMenuIfMobile">About</a>
+          <!-- Desktop Navigation -->
+          <ul class="nav-links">
+            <li><router-link to="/home"><i class="fas fa-home icon-fix"></i><span class="nav-text">Home</span></router-link></li>
+            <li><router-link to="/pet-profiles"><i class="fas fa-paw icon-fix"></i><span class="nav-text">Pet Profiles</span></router-link></li>
+
+            <!-- Resources Dropdown -->
+            <li class="dropdown"
+              @mouseenter="handleResourcesMouseEnter"
+              @mouseleave="handleResourcesMouseLeave">
+              <a href="#" @click.prevent="handleResourcesClick" aria-haspopup="true" :aria-expanded="showResourcesDropdown">
+                <i class="fas fa-book icon-fix"></i><span class="nav-text">Resources</span><i class="fas fa-chevron-down dropdown-arrow"></i>
+              </a>
+              <ul class="dropdown-menu" v-show="showResourcesDropdown" :aria-expanded="showResourcesDropdown">
+                <li><router-link to="/training"><i class="fas fa-paw"></i>Training Tips</router-link></li>
+                <li><router-link to="/stories"><i class="fas fa-dog"></i>Success Stories</router-link></li>
+              </ul>
+            </li>
+
+            <li><router-link to="/donations"><i class="fas fa-heart icon-fix"></i><span class="nav-text">Donation</span></router-link></li>
+
+            <!-- User Profile Dropdown -->
+            <li class="dropdown user-dropdown"
+              @mouseenter="handleAccountMouseEnter"
+              @mouseleave="handleAccountMouseLeave">
+              <a href="#" @click.prevent="handleAccountClick" aria-haspopup="true" :aria-expanded="showUserDropdown">
+                <i class="fas fa-user-circle icon-fix"></i><span class="nav-text">Account</span><i class="fas fa-chevron-down dropdown-arrow"></i>
+              </a>
+              <ul class="dropdown-menu user-dropdown-menu" v-show="showUserDropdown" :aria-expanded="showUserDropdown">
+                <li><router-link to="/status" class="dropdown-item profile-item"><i class="fas fa-user"></i>Profile</router-link></li>
+                <li><a href="#" @click.prevent="handleLogout" class="dropdown-item logout-item"><i class="fas fa-sign-out-alt"></i>Logout</a></li>
+              </ul>
+            </li>
+          </ul>
+
+          <!-- Mobile Menu Button -->
+          <label class="mobile-menu-button" for="check" @click="closeAllDropdowns">
+            <div class="hamburger-icon">
+              <span class="bar"></span>
+              <span class="bar"></span>
+              <span class="bar"></span>
             </div>
-          </transition>
-        </div>
-
-        <div class="right-section">
-          <div class="user-dropdown">
-            <div class="user-icon" role="button" aria-label="User profile" tabindex="0" @click="toggleUserDropdown">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                <circle cx="12" cy="7" r="4"></circle>
-              </svg>
-            </div>
-            <transition name="dropdown-animation">
-              <div v-if="userDropdownOpen" class="user-dropdown-content" :class="{ 'mobile-dropdown': isMobile }">
-                <div class="dropdown-header">
-                  <span>User Menu</span>
-                  <button class="close-dropdown-btn" @click="closeUserDropdown">×</button>
-                </div>
-                <a href="profile">Profile</a>
-                <a href="status">Status</a>
-                <a href="logout">Log Out</a>
-              </div>
-            </transition>
-          </div>
-
-          <button class="mobile-menu-toggle" aria-label="Toggle menu" @click="toggleMobileMenu">
-            <div class="bar" :class="{ 'bar-1-active': mobileMenuOpen }"></div>
-            <div class="bar" :class="{ 'bar-2-active': mobileMenuOpen }"></div>
-            <div class="bar" :class="{ 'bar-3-active': mobileMenuOpen }"></div>
-          </button>
+          </label>
         </div>
       </nav>
+
+      <!-- Mobile Sidebar -->
+      <input type="checkbox" id="check" v-model="sidebarOpen" class="hidden-checkbox">
+
+      <div class="side_bar">
+        <div class="sidebar-header">
+          <div class="logo">PAWFECT</div>
+          <label class="close-sidebar" for="check" @click="closeAllDropdowns">
+            <i class="fas fa-times"></i>
+          </label>
+        </div>
+
+        <div class="sidebar-content">
+          <ul class="sidebar-links">
+            <li><router-link to="/home" @click="closeAllDropdowns"><i class="fas fa-home icon-fix"></i><span>Home</span></router-link></li>
+            <li><router-link to="/pet-profiles" @click="closeAllDropdowns"><i class="fas fa-paw icon-fix"></i><span>Pet Profiles</span></router-link></li>
+
+            <!-- Mobile Resources Dropdown -->
+            <li class="mobile-dropdown">
+              <a href="#" @click.prevent="toggleMobileResourcesDropdown">
+                <i class="fas fa-book icon-fix"></i><span>Resources</span>
+                <i class="fas fa-chevron-down dropdown-arrow" :class="{ 'rotate-arrow': showMobileResourcesDropdown }"></i>
+              </a>
+              <ul class="mobile-dropdown-menu" v-show="showMobileResourcesDropdown">
+                <li><router-link to="/training"><i class="fas fa-paw"></i>Training Tips</router-link></li>
+                <li><router-link to="/stories"><i class="fas fa-dog"></i>Success Stories</router-link></li>
+              </ul>
+            </li>
+
+            <li><router-link to="/donations" @click="closeAllDropdowns"><i class="fas fa-heart icon-fix"></i><span>Donation</span></router-link></li>
+
+            <!-- Mobile User Dropdown -->
+            <li class="mobile-dropdown">
+              <a href="#" @click="toggleMobileUserDropdown">
+                <i class="fas fa-user-circle icon-fix"></i><span>Account</span>
+                <i class="fas fa-chevron-down dropdown-arrow" :class="{ 'rotate-arrow': showMobileUserDropdown }"></i>
+              </a>
+              <ul class="mobile-dropdown-menu" v-show="showMobileUserDropdown">
+                <li><a href="status" class="dropdown-item profile-item"><i class="fas fa-user"></i>Profile</a></li>
+                <li><a href="#" class="dropdown-item logout-item"><i class="fas fa-sign-out-alt"></i>Logout</a></li>
+              </ul>
+            </li>
+          </ul>
+
+          <div class="sidebar-footer">
+            <div class="media_icons">
+              <a href="#"><i class="fab fa-facebook-f"></i></a>
+              <a href="#"><i class="fab fa-instagram"></i></a>
+              <a href="#"><i class="fab fa-google"></i></a>
+            </div>
+          </div>
+        </div>
+      </div>
 
       <section class="success-stories">
         <h2>Success Stories</h2>
         <div class="story-main-container">
           <div class="story-text-content">
-            <h3>Lorem Ipsum</h3>
+            <h3>Golden Retriever</h3>
             <p>It is a long established fact that a reader will be distracted by the readable content of a page when looking at its layout. The point of using Lorem Ipsum is that it has a more-or-less normal distribution of letters</p>
           </div>
           <div class="story-cards-container">
             <div class="story-card">
-               <img src="/Designer.png" alt="images" class="story-card-img"> 
+               <!-- <img src="C:\Users\Ian\Downloads\Pawfect-master\Pawfect-master\public\Img\dog1.png" alt="images" class="story-card-img">  -->
             </div>
             <div class="story-card">
-              <img src="/Designer.png" alt="images" class="story-card-img"> 
+              <!-- <img src="C:\Users\Ian\Downloads\Pawfect-master\Pawfect-master\public\Img\dog2.png" alt="images" class="story-card-img">  -->
             </div>
             <div class="story-card">
-               <img src="/Designer.png" alt="images" class="story-card-img"> 
+               <!-- <img src="C:\Users\Ian\Downloads\Pawfect-master\Pawfect-master\public\Img\dog3.png" alt="images" class="story-card-img">  -->
             </div>
           </div>
         </div>
@@ -96,7 +134,7 @@
             <p>Garfield was found alone near a busy market—cold, hungry, and seeking shelter beside a cardboard box. Despite his rough start, he remained gentle and affectionate, quickly becoming a favorite at the shelter. After months of waiting, Garfield's life changed when John Ian walked in. Their connection was instant. Garfield rubbed up against him, and John Ian knew he had found the one. Now, Garfield enjoys cozy naps, playful evenings, and endless love in his new home. "He's more than a pet—he's family," says John Ian. Thank you, John Ian, for giving Garfield a second chance at happiness! ❤️.</p>
           </div>
           <div class="detailed-story-image-wrapper">
-             <img src="/Designer.png" alt="Detailed story image" class="detailed-story-img">
+             <!-- <img src="C:\Users\Ian\Downloads\Pawfect-master\Pawfect-master\public\Img\cat3.jpg" alt="Detailed story image" class="detailed-story-img"> -->
           </div>
         </div>
 
@@ -109,29 +147,29 @@
             <p>Ridley was rescued from an abandoned lot, scared and underweight but still full of spirit. With time, love, and care at the shelter, he slowly opened up—revealing a playful and loyal heart just waiting for the right person. That person turned out to be Justin. The moment Ridley met Justin, his tail wouldn't stop wagging. Their bond was instant, and Ridley finally found the home he had been hoping for. Now, Ridley spends his days happily exploring, cuddling on the couch, and living the life every pet deserves. "Ridley brings energy and love into my life every single day," says Justin. Thank you, Justin, for giving Ridley a fresh start and a forever home! ❤️</p>
           </div>
           <div class="detailed-story-image-wrapper">
-             <img src="/Designer.png" alt="Detailed story image" class="detailed-story-img"> 
+             <!-- <img src="C:\Users\Ian\Downloads\Pawfect-master\Pawfect-master\public\Img\dog5.jpg" alt="Detailed story image" class="detailed-story-img">  -->
           </div>
         </div>
 
         <div class="detailed-story-item">
           <div class="detailed-story-text">
             <h4>Lora Is Looking For Adopter</h4>
-            <p>Lora is a gentle and affectionate dog who was found wandering near a park, searching for food and shelter.<br>Despite her tough start, she remains full of love and trust. Lora loves belly rubs, quiet walks, and being around kind-hearted people. She's healthy, friendly, and ready to bring warmth and joy into someone's life. All she needs now is a forever family to call her own.<br>Could you be the one to give Lora the loving home she deserves? 🐶❤️</p>
-            <button class="do-something-button">Do something</button>
+            <p>Lora is a gentle and affectionate dog who was found wandering near a park, searching for food and shelter.<br>Despite her tough start, she remains full of love and trust. Lora loves belly rubs, quiet walks, and being around kind-hearted people. She's healthy, friendly, and ready to bring warmth and joy into someone's life. All she needs now is a forever family to call her own.<br>Could you be the one to give Lora the loving home she deserves? 🐱💛</p>
+            <button class="do-something-button" @click="goToPetProfile">Do something</button>
           </div>
           <div class="detailed-story-image-wrapper">
-          <img src="/Designer.png" alt="Detailed story image" class="detailed-story-img"> 
+          <img src="/ridley.png" alt="Detailed story image" class="detailed-story-img">
           </div>
         </div>
 
         <div class="detailed-story-item">
           <div class="detailed-story-text">
             <h4>Chiklet Is Looking For Adopter</h4>
-            <p>Chiklet got his name after we found him with bubble gum stuck in his tail—poor guy! But even then, he was calm, gentle, and curious, with the softest little meow that won our hearts.<br>Now clean, healthy, and full of personality, Chiklet loves cozy naps, head scratches, and watching the world from sunny windowsills. He's a sweet and easygoing companion just waiting for the right person to take him home. <br>Give Chiklet the loving forever home he's been dreaming of—you'll gain a loyal friend with a sticky-sweet story. 🐱💛.</p>
+            <p>Chiklet got his name after we found him with bubble gum stuck in his tail—poor guy! But even then, he was calm, gentle, and curious, with the softest little meow that won our hearts.<br>Now clean, healthy, and full of personality, Chiklet loves cozy naps, head scratches, and watching the world from sunny windowsills. He's a sweet and easygoing companion just waiting for the right person to take him home. <br>Give Chiklet the loving forever home he's been dreaming of—you'll gain a loyal friend with a sticky-sweet story. 🐶❤️.</p>
             <button class="do-something-button">Do something</button>
           </div>
           <div class="detailed-story-image-wrapper">
-             <img src="/Designer.png" alt="Detailed story image" class="detailed-story-img"> 
+             <!-- <img src="C:\Users\Ian\Downloads\Pawfect-master\Pawfect-master\public\Img\dog4.jpg" alt="Detailed story image" class="detailed-story-img">  -->
           </div>
         </div>
       </section>
@@ -141,23 +179,22 @@
     <footer class="footer">
       <div class="footer-container">
         <div class="footer-column logo-column">
-          <!-- <img src="/Designer.png" alt="Pawfect" width="40" height="40"> -->
+           <img src="/Designer.png" alt="Pawfect" width="40" height="40">
           <span class="Footer-logo-text">PAWFECT</span>
           <p class="footer-description">Helping paws find their forever home.</p>
         </div>
         <div class="footer-column">
           <h4>Quick Links</h4>
           <ul>
-            <li><a href="#">Home</a></li>
-            <li><a href="#">Pet Profiles</a></li>
-            <li><a href="#">Resources</a></li>
-            <li><a href="#">Donate</a></li>
-            <li><a href="#">Contact</a></li>
+            <li><a href="home">Home</a></li>
+            <li><a href="pet-profiles">Pet Profiles</a></li>
+            <li><a href="training">Resources</a></li>
+            <li><a href="donations">Donate</a></li>
           </ul>
         </div>
         <div class="footer-column">
           <h4>Contact</h4>
-          <p>Email: support@pawfect.com</p>
+          <p>Email: pawfectmatch5@gmail.com</p>
           <p>Phone: +123 456 7890</p>
           <p>Location: Gordon College, Olongapo</p>
         </div>
@@ -178,7 +215,12 @@
         desktopDropdownOpen: false,
         userDropdownOpen: false,
         isMobile: false,
-        hasScrolled: false
+        hasScrolled: false,
+        sidebarOpen: false,
+        showResourcesDropdown: false,
+        showMobileResourcesDropdown: false,
+        showUserDropdown: false,
+        showMobileUserDropdown: false
       }
     },
     mounted() {
@@ -240,6 +282,46 @@
           this.desktopDropdownOpen = false;
           this.userDropdownOpen = false;
         }
+      },
+      goToPetProfile() {
+        this.$router ? this.$router.push('/pet-profile') : window.location.href = '/pet-profile';
+      },
+      handleResourcesMouseEnter() {
+        this.showResourcesDropdown = true;
+      },
+      handleResourcesMouseLeave() {
+        this.showResourcesDropdown = false;
+      },
+      handleResourcesClick() {
+        // Handle resources click
+      },
+      handleAccountMouseEnter() {
+        this.showUserDropdown = true;
+      },
+      handleAccountMouseLeave() {
+        this.showUserDropdown = false;
+      },
+      handleAccountClick() {
+        // Handle account click
+      },
+      toggleMobileResourcesDropdown() {
+        this.showMobileResourcesDropdown = !this.showMobileResourcesDropdown;
+      },
+      toggleMobileUserDropdown() {
+        this.showMobileUserDropdown = !this.showMobileUserDropdown;
+      },
+      closeAllDropdowns() {
+        this.showResourcesDropdown = false;
+        this.showMobileResourcesDropdown = false;
+        this.showUserDropdown = false;
+        this.showMobileUserDropdown = false;
+      },
+      handleLogout() {
+        // Clear any stored user data
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        // Redirect to login page
+        this.$router.push('/login');
       }
     }
   }

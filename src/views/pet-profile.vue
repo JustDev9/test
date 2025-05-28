@@ -1,1565 +1,1756 @@
 <template>
   <div>
-    <nav class="nav-container" :class="{ 'nav-scrolled': hasScrolled }">
-      <div class="logo-container">
-        <div class="logo-image">
-          <!-- <img src="/Designer.png" alt="Pawfect" width="40" height="40"> -->
-        </div>
-        <span class="logo-text">PAWFECT</span>
-      </div>
-
-      <div class="nav-links-container">
-        <transition name="fade">
-          <div v-if="mobileMenuOpen || !isMobile" class="nav-links" :class="{ 'mobile-active': mobileMenuOpen }">
-            <a href="home" class="nav-link" @click="closeMenuIfMobile">Home</a>
-            <a href="pet-profiles" class="nav-link" @click="closeMenuIfMobile">Pet Profiles</a>
-            <div class="dropdown">
-              <a href="#" class="nav-link dropdown-toggle" @click="toggleDropdown">
-                Resources <span class="dropdown-arrow" :class="{ 'arrow-rotated': dropdownOpen }">▼</span>
-              </a>
-              <transition name="slide-fade">
-                <div v-if="isMobile && dropdownOpen" class="dropdown-content mobile">
-                  <a href="training" @click="closeMenuIfMobile">Training Tips</a>
-                  <a href="#" @click="closeMenuIfMobile">Health Guides</a>
-                  <a href="#" @click="closeMenuIfMobile">Pet Care</a>
-                </div>
-              </transition>
-              <div v-if="!isMobile" class="dropdown-content desktop">
-                <a href="training">Training Tips</a>
-                <a href="#">Health Guides</a>
-                <a href="#">Pet Care</a>
-              </div>
-            </div>
-            <a href="donations" class="nav-link" @click="closeMenuIfMobile">Donation</a>
+    <!-- Navigation Bar -->
+    <nav class="nav-bar">
+      <div class="menu-container">
+        <div class="logo"><img src="/Designer.png" alt="Logo" class="logo-img" /><a href="#">PAWFECT</a></div>
+       
+        <!-- Desktop Navigation -->
+        <ul class="nav-links">
+          <li><a href="home"><i class="fas fa-home icon-fix"></i><span class="nav-text">Home</span></a></li>
+          <li><a href="pet-profiles"><i class="fas fa-paw icon-fix"></i><span class="nav-text">Pet Profiles</span></a></li>
+         
+          <!-- Resources Dropdown -->
+          <li class="dropdown"
+            @mouseenter="handleResourcesMouseEnter"
+            @mouseleave="handleResourcesMouseLeave">
+            <a href="#" @click="handleResourcesClick" aria-haspopup="true" :aria-expanded="showResourcesDropdown">
+              <i class="fas fa-book icon-fix"></i><span class="nav-text">Resources</span><i class="fas fa-chevron-down dropdown-arrow"></i>
+            </a>
+            <ul class="dropdown-menu" v-show="showResourcesDropdown" :aria-expanded="showResourcesDropdown">
+              <li><a href="training"><i class="fas fa-paw"></i>Training Tips</a></li>
+              <li><a href="stories"><i class="fas fa-dog"></i>Success Stories</a></li>
+            </ul>
+          </li>
+         
+          <li><a href="donations"><i class="fas fa-heart icon-fix"></i><span class="nav-text">Donation</span></a></li>
+         
+          <!-- User Profile Dropdown -->
+          <li class="dropdown user-dropdown"
+            @mouseenter="handleAccountMouseEnter"
+            @mouseleave="handleAccountMouseLeave">
+            <a href="#" @click="handleAccountClick" aria-haspopup="true" :aria-expanded="showUserDropdown">
+              <i class="fas fa-user-circle icon-fix"></i><span class="nav-text">Account</span><i class="fas fa-chevron-down dropdown-arrow"></i>
+            </a>
+            <ul class="dropdown-menu user-dropdown-menu" v-show="showUserDropdown" :aria-expanded="showUserDropdown">
+              <li><a href="Profile" class="dropdown-item profile-item"><i class="fas fa-user"></i>Profile</a></li>
+              <li><a href="#" class="dropdown-item logout-item"><i class="fas fa-sign-out-alt"></i>Logout</a></li>
+            </ul>
+          </li>
+        </ul>
+       
+        <!-- Mobile Menu Button -->
+        <label class="mobile-menu-button" for="check" @click="closeAllDropdowns">
+          <div class="hamburger-icon">
+            <span class="bar"></span>
+            <span class="bar"></span>
+            <span class="bar"></span>
           </div>
-        </transition>
-      </div>
-
-      <div class="right-section">
-        <div class="user-icon" role="button" aria-label="User profile" tabindex="0">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-            <circle cx="12" cy="7" r="4"></circle>
-          </svg>
-        </div>
-
-        <button class="mobile-menu-toggle" aria-label="Toggle menu" @click="toggleMobileMenu">
-          <div class="bar" :class="{ 'bar-1-active': mobileMenuOpen }"></div>
-          <div class="bar" :class="{ 'bar-2-active': mobileMenuOpen }"></div>
-          <div class="bar" :class="{ 'bar-3-active': mobileMenuOpen }"></div>
-        </button>
+        </label>
       </div>
     </nav>
 
-    <div class="pet-profile-container">
-      <div class="pet-card">
-        <div class="pet-image-container">
-          <!-- <img src="/public/ridley.png" alt="Ian" class="pet-image"> -->
+    <!-- Mobile Sidebar -->
+    <input type="checkbox" id="check" v-model="sidebarOpen" class="hidden-checkbox">
+   
+    <div class="side_bar">
+      <div class="sidebar-header">
+        <div class="logo">PAWFECT</div>
+        <label class="close-sidebar" for="check" @click="closeAllDropdowns">
+          <i class="fas fa-times"></i>
+        </label>
+      </div>
+     
+      <div class="sidebar-content">
+        <ul class="sidebar-links">
+          <li><a href="#" @click="closeAllDropdowns"><i class="fas fa-home icon-fix"></i><span>Home</span></a></li>
+          <li><a href="#" @click="closeAllDropdowns"><i class="fas fa-paw icon-fix"></i><span>Pet Profiles</span></a></li>
+         
+          <!-- Mobile Resources Dropdown -->
+          <li class="mobile-dropdown">
+            <a href="#" @click="toggleMobileResourcesDropdown">
+              <i class="fas fa-book icon-fix"></i><span>Resources</span>
+              <i class="fas fa-chevron-down dropdown-arrow" :class="{ 'rotate-arrow': showMobileResourcesDropdown }"></i>
+            </a>
+            <ul class="mobile-dropdown-menu" v-show="showMobileResourcesDropdown">
+              <li><a href="#"><i class="fas fa-paw"></i>Training Tips</a></li>
+              <li><a href="#"><i class="fas fa-dog"></i>Success Stories</a></li>
+            </ul>
+          </li>
+         
+          <li><a href="#" @click="closeAllDropdowns"><i class="fas fa-heart icon-fix"></i><span>Donation</span></a></li>
+         
+          <!-- Mobile User Dropdown -->
+          <li class="mobile-dropdown">
+            <a href="#" @click="toggleMobileUserDropdown">
+              <i class="fas fa-user-circle icon-fix"></i><span>Account</span>
+              <i class="fas fa-chevron-down dropdown-arrow" :class="{ 'rotate-arrow': showMobileUserDropdown }"></i>
+            </a>
+            <ul class="mobile-dropdown-menu" v-show="showMobileUserDropdown">
+              <li><a href="status" class="dropdown-item profile-item"><i class="fas fa-user"></i>Profile</a></li>
+              <li><a href="#" class="dropdown-item logout-item"><i class="fas fa-sign-out-alt"></i>Logout</a></li>
+            </ul>
+          </li>
+        </ul>
+       
+        <div class="sidebar-footer">
+          <div class="media_icons">
+            <a href="#"><i class="fab fa-facebook-f"></i></a>
+            <a href="#"><i class="fab fa-instagram"></i></a>
+            <a href="#"><i class="fab fa-google"></i></a>
+          </div>
         </div>
-        <div class="pet-info">
-          <h2 class="pet-name">Hi! I'm Ian</h2>
-          <div class="pet-details">
-            <div class="detail-item">
-              <span class="detail-label">Age:</span>
-              <span class="detail-value">20</span>
+      </div>
+    </div>
+
+    <!-- Pet Profile Card (matches image layout) -->
+    <div class="pet-profile-card">
+      <div class="pet-image-wrapper">
+        <img src="/ridley.png" alt="Ridley" class="pet-image" />
+      </div>
+      <div class="pet-info-wrapper">
+        <h1 class="pet-title">Hi! I'm Ridley</h1>
+        <div class="pet-meta">
+          <span><b>Age:</b> 19</span>
+          <span><b>Breed:</b> American White Hair</span>
+          <span><b>Sex:</b> M</span>
+        </div>
+        <p class="pet-description">
+          Ridley is found in a corner street in Olongapo and he is trying to find his love ones. He has a gullible and joyful personality and likes to play with other people. He enjoys petting and play time. He also likes coding.
+        </p>
+        <button class="apply-btn" @click="showApplicationModal = true">Apply for Adoption</button>
+      </div>
+    </div>
+  </div>
+  <!-- Application Modal -->
+  <div v-if="showApplicationModal" class="modal-overlay">
+    <div class="modal-content pro-modal form-modern rich-form">
+      <div class="modal-bar rich-bar"></div>
+      <div class="step-indicator"><span class="step-circle">1</span> Application Form</div>
+      <button class="close-modal pro-close" @click="showApplicationModal = false" aria-label="Close">&times;</button>
+      <h2 class="modal-title rich-title"><i class="fas fa-paw rich-icon"></i> Pet Adoption Application</h2>
+      <form @submit.prevent="submitApplication" class="modern-form-grid rich-form-grid">
+        <h3 class="section-header rich-section"><i class="fas fa-user rich-section-icon"></i> Applicant Details</h3>
+        <div class="modern-form-row">
+          <div class="modern-form-col">
+            <div class="modern-group">
+              <label>Name <span class="required">*</span></label>
+              <div class="modern-row-2">
+                <input v-model="application.firstName" placeholder="First Name" required />
+                <input v-model="application.lastName" placeholder="Last Name" required />
+              </div>
             </div>
-            <div class="detail-item">
-              <span class="detail-label">Breed:</span>
-              <span class="detail-value">American White Hair</span>
+            <div class="modern-group">
+              <label>E-mail <span class="required">*</span></label>
+              <input v-model="application.emailAddress" placeholder="example@example.com" required />
             </div>
-            <div class="detail-item">
-              <span class="detail-label">Sex:</span>
-              <span class="detail-value">M</span>
+            <div class="modern-group">
+              <label>Phone Number (Work)</label>
+              <input 
+                v-model="application.phoneNumberWork" 
+                placeholder="Phone Number (Work)" 
+                type="tel" 
+                inputmode="numeric" 
+                pattern="[0-9]{11}" 
+                maxlength="11"
+                @input="validatePhoneWork"
+                required 
+              />
+            </div>
+            <div class="modern-group">
+              <label>Address</label>
+              <input v-model="application.addressStreet" placeholder="Street Address" required />
+              <div class="modern-row-3">
+                <input v-model="application.addressCity" placeholder="City" required />
+                <input v-model="application.addressState" placeholder="State / Province" required />
+                <input 
+                  v-model="application.addressZIP" 
+                  placeholder="Postal / ZIP" 
+                  type="tel" 
+                  inputmode="numeric" 
+                  pattern="[0-9]{4}" 
+                  maxlength="4"
+                  @input="validateZIP"
+                  required 
+                />
+              </div>
+              <input v-model="application.addressCountry" placeholder="Country" required />
+            </div>
+            <div class="modern-group">
+              <label>Submit 1 valid ID (image or PDF) <span class="file-size-limit">(Max 5MB)</span></label>
+              <input type="file" @change="handleFileUpload($event, 'validIdFile')" accept="image/*,application/pdf" required />
+            </div>
+            <div class="modern-group">
+              <label>Submit a photo of your house <span class="file-size-limit">(Max 5MB)</span></label>
+              <input type="file" @change="handleFileUpload($event, 'houseImageFile')" accept="image/*" required />
+            </div>
+            <div class="modern-group radio-group">
+              <label>Do you have another pet?</label>
+              <div class="modern-radio-row">
+                <label class="rich-radio"><input type="radio" v-model="application.hasOtherPet" value="Yes" required /> Yes</label>
+                <label class="rich-radio"><input type="radio" v-model="application.hasOtherPet" value="No" required /> No</label>
+              </div>
+            </div>
+            <div v-if="application.hasOtherPet === 'Yes'" class="modern-group radio-group">
+              <label><i class="fas fa-paw rich-section-icon"></i> Is your pet used to other pets?</label>
+              <div class="modern-radio-row">
+                <label class="rich-radio"><input type="radio" v-model="application.petUsedToOthers" value="Yes" required /> Yes</label>
+                <label class="rich-radio"><input type="radio" v-model="application.petUsedToOthers" value="No" required /> No</label>
+              </div>
             </div>
           </div>
-          <p class="pet-description">
-            Ian was found on a corner street in Olongapo and is trying to find his loved ones.
-            He has a gullible and joyful personality and likes to play with other people.
-            He enjoys petting and playtime. He also likes coding.
-          </p>
-          <button class="adoption-button" @click="openApplicationForm">Apply for Adoption</button>
-        </div>
-      </div>
-    </div>
-
-    <div class="container adoption-process">
-      <h2 class="title">Process of Adoption</h2>
-      <div class="steps">
-        <div class="step">
-          <div class="circle">1</div>
-          <p>Apply</p>
-        </div>
-        <div class="line"></div>
-        <div class="step">
-          <div class="circle">2</div>
-          <p>Screening</p>
-        </div>
-        <div class="line"></div>
-        <div class="step">
-          <div class="circle">3</div>
-          <p>Finalize Adoption</p>
-        </div>
-        <div class="line"></div>
-        <div class="step">
-          <div class="circle">4</div>
-          <p>Bring Home</p>
-        </div>
-      </div>
-    </div>
-
-    <div class="application-form-section">
-      <div class="form-container" :class="{ 'show-form': showApplicationForm }">
-        <div class="form-overlay" @click="closeApplicationForm"></div>
-        <div class="form-content">
-          <button class="close-form-btn" @click="closeApplicationForm">&times;</button>
-
-          <h2 class="form-title">🐾 Pet Adoption Application Form</h2>
-          <p class="form-description">
-            Please fill out the form below to apply for adoption. All fields marked with * are required.
-          </p>
-
-          <form @submit.prevent="currentApplicationStep === 1 ? proceedToUploadsAndFinalize() : submitFullApplication()" class="adoption-form">
-
-            <div v-if="currentApplicationStep === 1">
-              <h3>1. Applicant Information</h3>
-              <div class="form-group">
-                <label for="fullName">Full Name *</label>
-                <input type="text" id="fullName" v="application.fullName" v-model="application.fullName" required>
-              </div>
-              <div class="form-group">
-                 <label for="ageOver18" class="checkbox-label">
-                    <input type="checkbox" id="ageOver18" v-model="application.ageOver18" required>
-                    I confirm I am 18 years or older *
-                </label>
-              </div>
-              <div class="form-group">
-                <label>Address *</label>
-                <input type="text" v-model="application.addressStreet" placeholder="Street Address" required>
-                <div class="input-row">
-                    <input type="text" v-model="application.addressCity" placeholder="City" required class="mt-small">
-                    <input type="text" v-model="application.addressState" placeholder="Province" required class="mt-small">
-                    <input type="text" v-model="application.addressZIP" placeholder="ZIP Code" required class="mt-small">
-                </div>
-              </div>
-              <div class="input-row">
-                <div class="form-group">
-                  <label for="phoneNumber">Phone Number *</label>
-                  <input type="tel" id="phoneNumber" v-model="application.phoneNumber" required>
-                </div>
-                <div class="form-group">
-                  <label for="emailAddress">Email Address *</label>
-                  <input type="email" id="emailAddress" v-model="application.emailAddress" required>
-                </div>
-              </div>
-               <div class="form-group">
-                <label for="preferredContactMethod">Preferred Contact Method *</label>
-                <select id="preferredContactMethod" v-model="application.preferredContactMethod" required>
-                    <option value="Email">Email</option>
-                    <option value="Phone">Phone</option>
-                    <option value="Text">Text</option>
-                </select>
-              </div>
-
-              <h3>2. Household Information</h3>
-               <div class="form-group">
-                <label>Do you own or rent your home? *</label>
-                <div>
-                    <label><input type="radio" v-model="application.homeOwnership" value="Own" required> Own</label>
-                    <label><input type="radio" v-model="application.homeOwnership" value="Rent"> Rent</label>
-                </div>
-              </div>
-              <div v-if="application.homeOwnership === 'Rent'" class="form-group">
-                <label>If renting, do you have landlord's permission to have pets? *</label>
-                 <div>
-                    <label><input type="radio" v-model="application.landlordPermission" value="Yes" required> Yes</label>
-                    <label><input type="radio" v-model="application.landlordPermission" value="No"> No</label>
-                </div>
-                <label for="landlordContact" class="mt-small">Landlord Name & Contact (if applicable):</label>
-                <input type="text" id="landlordContact" v-model="application.landlordContact">
-              </div>
-              <div class="form-group">
-                <label for="homeType">Type of home: *</label>
-                <select id="homeType" v-model="application.homeType" required>
-                    <option value="House">House</option>
-                    <option value="Apartment">Apartment</option>
-                    <option value="Condo">Condo</option>
-                    <option value="Other">Other</option>
-                </select>
-                 <input v-if="application.homeType === 'Other'" type="text" v-model="application.homeTypeOther" placeholder="Please specify" class="mt-small">
-              </div>
-              <div class="form-group">
-                <label for="timeAtAddress">How long have you lived at this address? *</label>
-                <input type="text" id="timeAtAddress" v-model="application.timeAtAddress" required>
-              </div>
-              <div class="form-group">
-                <label>Is your yard securely fenced? *</label>
-                <div>
-                    <label><input type="radio" v-model="application.yardFenced" value="Yes" required> Yes</label>
-                    <label><input type="radio" v-model="application.yardFenced" value="No"> No</label>
-                    <label><input type="radio" v-model="application.yardFenced" value="N/A"> N/A (e.g., apartment)</label>
-                </div>
-              </div>
-              <div class="form-group">
-                <label for="householdMembersInfo">List all members of the household (name, age, relationship): *</label>
-                <textarea id="householdMembersInfo" v-model="application.householdMembersInfo" rows="3" required></textarea>
-              </div>
-               <div class="form-group">
-                <label>Are all household members in agreement about adopting a pet? *</label>
-                 <div>
-                    <label><input type="radio" v-model="application.allHouseholdMembersAgree" :value="true" required> Yes</label>
-                    <label><input type="radio" v-model="application.allHouseholdMembersAgree" :value="false"> No</label>
-                </div>
-              </div>
-
-              <h3>3. Current & Past Pets</h3>
-                <div class="form-group">
-                    <label>Do you currently have pets? *</label>
-                    <div>
-                        <label><input type="radio" v-model="application.hasCurrentPets" :value="true" required> Yes</label>
-                        <label><input type="radio" v-model="application.hasCurrentPets" :value="false"> No</label>
-                    </div>
-                </div>
-                <div v-if="application.hasCurrentPets" class="form-group">
-                    <label for="currentPetsDetails">If yes, please list species, breed, age, gender, spayed/neutered status, and if they are up-to-date on vaccinations:</label>
-                    <textarea id="currentPetsDetails" v-model="application.currentPetsDetails" rows="3"></textarea>
-                </div>
-                <div class="form-group">
-                    <label>Have you owned pets in the past 5 years? *</label>
-                     <div>
-                        <label><input type="radio" v-model="application.ownedPetsLast5Years" :value="true" required> Yes</label>
-                        <label><input type="radio" v-model="application.ownedPetsLast5Years" :value="false"> No</label>
-                    </div>
-                </div>
-                <div v-if="application.ownedPetsLast5Years" class="form-group">
-                    <label for="pastPetsDetails">If yes, what happened to them?</label>
-                    <textarea id="pastPetsDetails" v-model="application.pastPetsDetails" rows="3"></textarea>
-                </div>
-
-              <h3>4. Veterinarian Information (Optional but preferred)</h3>
-              <div class="input-row">
-                <div class="form-group">
-                    <label for="vetName">Veterinarian's Name:</label>
-                    <input type="text" id="vetName" v-model="application.vetName">
-                </div>
-                <div class="form-group">
-                    <label for="vetClinicName">Clinic Name:</label>
-                    <input type="text" id="vetClinicName" v-model="application.vetClinicName">
-                </div>
-              </div>
-              <div class="form-group">
-                <label for="vetPhone">Vet Phone Number:</label>
-                <input type="tel" id="vetPhone" v-model="application.vetPhone">
-              </div>
-              <div class="form-group">
-                <label class="checkbox-label">
-                    <input type="checkbox" v-model="application.vetContactPermission">
-                    May we contact your vet for reference?
-                </label>
-              </div>
-
-              <h3>5. Employment & Lifestyle</h3>
-              <div class="form-group">
-                <label for="occupation">Occupation *</label>
-                <input type="text" id="occupation" v-model="application.occupation" required>
-              </div>
-              <div class="form-group">
-                <label for="workSchedule">Work schedule (e.g., 9am-5pm, M-F, hours away from home): *</label>
-                <input type="text" id="workSchedule" v-model="application.workSchedule" required>
-              </div>
-              <div class="form-group">
-                <label for="hoursPetAlone">How many hours per day will the pet typically be alone? *</label>
-                <input type="text" id="hoursPetAlone" v-model="application.hoursPetAlone" required>
-              </div>
-              <div class="form-group">
-                <label for="petCaregiverWhenNotHome">Who will care for the pet when you're not home or on vacation? *</label>
-                <input type="text" id="petCaregiverWhenNotHome" v-model="application.petCaregiverWhenNotHome" required>
-              </div>
-
-              <h3>6. Pet Preferences</h3>
-              <div class="form-group">
-                <label for="petTypePreference">Type of pet you're looking to adopt: *</label>
-                <select id="petTypePreference" v-model="application.petTypePreference" required>
-                    <option value="Dog">Dog</option>
-                    <option value="Cat">Cat</option>
-                    <option value="Other">Other</option>
-                </select>
-              </div>
-               <div class="form-group">
-                <label for="breedPreference">Breed preference (if any):</label>
-                <input type="text" id="breedPreference" v-model="application.breedPreference">
-              </div>
-              <div class="form-group">
-                <label for="agePreference">Age preference: *</label>
-                <select id="agePreference" v-model="application.agePreference" required>
-                    <option value="Puppy/Kitten">Puppy/Kitten</option>
-                    <option value="Adult">Adult</option>
-                    <option value="Senior">Senior</option>
-                    <option value="Any">Any</option>
-                </select>
-              </div>
-              <div class="form-group">
-                <label for="genderPreference">Gender preference: *</label>
-                <select id="genderPreference" v-model="application.genderPreference" required>
-                    <option value="Male">Male</option>
-                    <option value="Female">Female</option>
-                    <option value="Any">Any</option>
-                </select>
-              </div>
-              <div class="form-group">
-                <label for="activityLevelPreference">Activity level preferred: *</label>
-                <select id="activityLevelPreference" v-model="application.activityLevelPreference" required>
-                    <option value="Low">Low</option>
-                    <option value="Medium">Medium</option>
-                    <option value="High">High</option>
-                </select>
-              </div>
-
-              <h3>7. Care & Commitment</h3>
-                <div class="form-group">
-                    <label for="petSleepLocation">Where will the pet sleep? *</label>
-                    <input type="text" id="petSleepLocation" v-model="application.petSleepLocation" required>
-                </div>
-                <div class="form-group">
-                    <label for="petFood">What will you feed the pet? (e.g., brand, type of food) *</label>
-                    <input type="text" id="petFood" v-model="application.petFood" required>
-                </div>
-                <div class="form-group">
-                    <label>Are you prepared for the financial responsibility of pet ownership (food, vet care, emergencies, etc.)? *</label>
-                    <div>
-                        <label><input type="radio" v-model="application.preparedForFinancialResponsibility" :value="true" required> Yes</label>
-                        <label><input type="radio" v-model="application.preparedForFinancialResponsibility" :value="false"> No</label>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label for="responseToBehaviorIssues">What will you do if the pet develops behavior issues? *</label>
-                    <textarea id="responseToBehaviorIssues" v-model="application.responseToBehaviorIssues" rows="3" required></textarea>
-                </div>
-                <div class="form-group">
-                    <label>Are you willing to take the pet to training classes (if needed)? *</label>
-                    <div>
-                        <label><input type="radio" v-model="application.willingToTrain" :value="true" required> Yes</label>
-                        <label><input type="radio" v-model="application.willingToTrain" :value="false"> No</label>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label for="reasonsToReturnPet">What circumstances would cause you to return a pet? *</label>
-                    <textarea id="reasonsToReturnPet" v-model="application.reasonsToReturnPet" rows="3" required></textarea>
-                </div>
-
-
-              <h3>8. Emergency & Long-Term Planning</h3>
-                <div class="form-group">
-                    <label for="emergencyPetCaregiver">Who will care for the pet if something happens to you (emergency contact)? *</label>
-                    <input type="text" id="emergencyPetCaregiver" v-model="application.emergencyPetCaregiver" required>
-                </div>
-                <div class="form-group">
-                    <label>Have you ever surrendered a pet before? *</label>
-                    <div>
-                        <label><input type="radio" v-model="application.surrenderedPetBefore" :value="true" required> Yes</label>
-                        <label><input type="radio" v-model="application.surrenderedPetBefore" :value="false"> No</label>
-                    </div>
-                </div>
-                <div v-if="application.surrenderedPetBefore" class="form-group">
-                    <label for="surrenderedPetExplanation">If yes, please explain the circumstances:</label>
-                    <textarea id="surrenderedPetExplanation" v-model="application.surrenderedPetExplanation" rows="3"></textarea>
-                </div>
-
-              <h3>9. References (Optional)</h3>
-                <p>Please provide 1-2 personal references (not family members).</p>
-                <h4>Reference 1</h4>
-                <div class="input-row">
-                    <div class="form-group">
-                        <label for="reference1Name">Name:</label>
-                        <input type="text" id="reference1Name" v-model="application.reference1Name">
-                    </div>
-                    <div class="form-group">
-                        <label for="reference1Relationship">Relationship:</label>
-                        <input type="text" id="reference1Relationship" v-model="application.reference1Relationship">
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label for="reference1Contact">Contact Info (Phone/Email):</label>
-                    <input type="text" id="reference1Contact" v-model="application.reference1Contact">
-                </div>
-
-                <h4>Reference 2</h4>
-                 <div class="input-row">
-                    <div class="form-group">
-                        <label for="reference2Name">Name:</label>
-                        <input type="text" id="reference2Name" v-model="application.reference2Name">
-                    </div>
-                    <div class="form-group">
-                        <label for="reference2Relationship">Relationship:</label>
-                        <input type="text" id="reference2Relationship" v-model="application.reference2Relationship">
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label for="reference2Contact">Contact Info (Phone/Email):</label>
-                    <input type="text" id="reference2Contact" v-model="application.reference2Contact">
-                </div>
-
-              <div class="form-actions">
-                <button type="submit" class="submit-btn">Next: Upload Documents & Finalize</button>
+          <div class="modern-form-col">
+            <div class="modern-group">
+              <label>Age</label>
+              <input 
+                v-model="application.age" 
+                placeholder="Age" 
+                type="tel" 
+                inputmode="numeric" 
+                pattern="[0-9]{1,2}" 
+                maxlength="2"
+                @input="validateAge"
+                required 
+              />
+            </div>
+            <div class="modern-group">
+              <label>Phone Number (Mobile)</label>
+              <input 
+                v-model="application.phoneNumber" 
+                placeholder="Phone Number (Mobile)" 
+                type="tel" 
+                inputmode="numeric" 
+                pattern="[0-9]{11}" 
+                maxlength="11"
+                @input="validatePhoneMobile"
+                required 
+              />
+            </div>
+            <div class="modern-group">
+              <label>Email Address</label>
+              <input v-model="application.emailAddressAlternate" placeholder="Email Address" type="email" required />
+            </div>
+            <div class="modern-group">
+              <label><i class="fas fa-home rich-section-icon"></i> I / We live in a</label>
+              <div class="modern-radio-col">
+                <label class="rich-radio"><input type="radio" v-model="application.homeType" value="Single Family Home" required /> Single Family Home</label>
+                <label class="rich-radio"><input type="radio" v-model="application.homeType" value="Condo/Townhome/Apartment" required /> Condo/Townhome/Apartment</label>
               </div>
             </div>
-
-            <div v-if="currentApplicationStep === 2">
-              <h3>10. Upload Documents (Optional)</h3>
-              <div class="form-group">
-                <label for="homePhoto">Upload a photo of your home or pet area:</label>
-                <input type="file" id="homePhoto" @change="handleFileUpload($event, 'homePhotoFile')" accept="image/*">
-              </div>
-              <div class="form-group">
-                <label for="idPhoto">Upload a copy of your ID:</label>
-                <input type="file" id="idPhoto" @change="handleFileUpload($event, 'idPhotoFile')" accept="image/*,application/pdf">
-              </div>
-
-              <h3>11. Acknowledgements & Consent</h3>
-              <div class="form-group">
-                <label class="checkbox-label">
-                    <input type="checkbox" v-model="application.certifyTrueInfo" required>
-                    I certify that all information provided in this application is true and complete to the best of my knowledge. *
-                </label>
-              </div>
-              <div class="form-group">
-                 <label class="checkbox-label">
-                    <input type="checkbox" v-model="application.authorizeVerification" required>
-                    I authorize the rescue/shelter to verify this information, including contacting references and veterinarians. *
-                </label>
-              </div>
-              <div class="form-group">
-                <label for="signature">Signature (Type Full Name) *</label>
-                <input type="text" id="signature" v-model="application.signature" required>
-              </div>
-              <div class="form-group">
-                <label for="applicationDate">Date *</label>
-                <input type="date" id="applicationDate" v-model="application.applicationDate" required readonly>
-              </div>
-
-              <div class="form-actions">
-                 <button type="button" class="submit-btn secondary-btn" @click="currentApplicationStep = 1">Back to Details</button>
-                <button type="submit" class="submit-btn">Submit Application</button>
+            <div v-if="application.homeType === 'Condo/Townhome/Apartment'" class="modern-group radio-group">
+              <label>Are pets allowed in your residence?</label>
+              <div class="modern-radio-row">
+                <label class="rich-radio"><input type="radio" v-model="application.petsAllowedInApartment" value="Yes" required /> Yes</label>
+                <label class="rich-radio"><input type="radio" v-model="application.petsAllowedInApartment" value="No" required /> No</label>
               </div>
             </div>
-          </form>
+            <div class="modern-group radio-group">
+              <label>Are you ready for the financial needs of the pet?</label>
+              <div class="modern-radio-row">
+                <label class="rich-radio"><input type="radio" v-model="application.readyForFinancialNeeds" value="Yes" required /> Yes</label>
+                <label class="rich-radio"><input type="radio" v-model="application.readyForFinancialNeeds" value="No" /> No</label>
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
-    </div>
-
-    <div class="questionnaire-section" v-if="showQuestionnaire">
-      <h2 class="form-title">Adoption Questionnaire</h2>
-      <div class="question" v-for="(question, index) in questions" :key="index">
-        <p>{{ question.text }}</p>
-        <div class="options">
-          <button
-            v-for="(option, i) in question.options"
-            :key="i"
-            class="option-button"
-            :class="{ 'selected': answers[index] === i }"
-            @click="selectAnswer(index, i)"
-          >
-            {{ option }}
-          </button>
+        <hr class="rich-divider" />
+        <div class="form-actions">
+          <button type="submit" class="pro-submit rich-submit"><i class="fas fa-paper-plane"></i> Submit Application</button>
         </div>
-        <p v-if="answers[index] !== undefined" class="selected-answer">
-          Selected: {{ question.options[answers[index]] }}
-        </p>
-      </div>
-      <button class="submit-btn questionnaire-submit-btn" @click="submitQuestionnaire">Submit Questionnaire</button>
+      </form>
     </div>
   </div>
 </template>
 
 <script>
 export default {
-  name: 'PawfectAdoption',
+  name: 'PawfectNavigation',
   data() {
     return {
-      mobileMenuOpen: false,
-      dropdownOpen: false,
-      isMobile: false,
-      hasScrolled: false,
-      showApplicationForm: false,
-      currentApplicationStep: 1, // 1: details, 2: uploads & consent
-      showQuestionnaire: false,
+      sidebarOpen: false,
+      showResourcesDropdown: false,
+      showUserDropdown: false,
+      showMobileResourcesDropdown: false,
+      showMobileUserDropdown: false,
+      isTablet: false,
+      isTouch: false,
+      showApplicationModal: false,
       application: {
-        // 1. Applicant Information
-        fullName: '',
-        ageOver18: false,
+        firstName: '',
+        lastName: '',
+        age: '',
+        emailAddress: '',
+        phoneNumber: '',
+        phoneNumberWork: '',
+        phoneNumberHome: '',
         addressStreet: '',
+        addressStreet2: '',
         addressCity: '',
         addressState: '',
         addressZIP: '',
-        phoneNumber: '',
-        emailAddress: '',
-        preferredContactMethod: 'Email',
-
-        // 2. Household Information
-        homeOwnership: 'Own',
-        landlordPermission: 'N/A',
-        landlordContact: '',
-        homeType: 'House',
-        homeTypeOther: '',
-        timeAtAddress: '',
-        yardFenced: 'N/A',
-        householdMembersInfo: '',
-        allHouseholdMembersAgree: false,
-
-        // 3. Current & Past Pets
-        hasCurrentPets: false,
-        currentPetsDetails: '',
-        ownedPetsLast5Years: false,
-        pastPetsDetails: '',
-
-        // 4. Veterinarian Information
-        vetName: '',
-        vetClinicName: '',
-        vetPhone: '',
-        vetContactPermission: false,
-
-        // 5. Employment & Lifestyle
-        occupation: '',
-        workSchedule: '',
-        hoursPetAlone: '',
-        petCaregiverWhenNotHome: '',
-
-        // 6. Pet Preferences
-        petTypePreference: 'Dog',
-        breedPreference: '',
-        agePreference: 'Adult',
-        genderPreference: 'Any',
-        activityLevelPreference: 'Medium',
-
-        // 7. Care & Commitment
-        petSleepLocation: '',
-        petFood: '',
-        preparedForFinancialResponsibility: false,
-        responseToBehaviorIssues: '',
-        willingToTrain: false,
-        reasonsToReturnPet: '',
-
-        // 8. Emergency & Long-Term Planning
-        emergencyPetCaregiver: '',
-        surrenderedPetBefore: false,
-        surrenderedPetExplanation: '',
-
-        // 9. References
-        reference1Name: '',
-        reference1Relationship: '',
-        reference1Contact: '',
-        reference2Name: '',
-        reference2Relationship: '',
-        reference2Contact: '',
-
-        // 11. Acknowledgements & Consent (Step 2)
-        certifyTrueInfo: false,
-        authorizeVerification: false,
-        signature: '',
-        applicationDate: new Date().toISOString().slice(0, 10),
+        addressCountry: '',
+        hasOtherPet: '',
+        petUsedToOthers: '',
+        homeType: '',
+        petsAllowedInApartment: '',
+        readyForFinancialNeeds: '',
+        emailAddressAlternate: '',
       },
-      homePhotoFile: null,
-      idPhotoFile: null,
-      questions: [
-        {
-          text: "What is your primary motivation for wanting to adopt a pet at this time?",
-          options: [
-            "Companionship",
-            "For my children",
-            "To save a life",
-            "Security / Guarding",
-            "Other"
-          ]
-        },
-        {
-          text: "How do you plan to introduce the new pet to your home and existing pets (if any)?",
-          options: [
-            "Gradual introduction over several days/weeks",
-            "Immediate full access",
-            "Keep them separate initially in different rooms",
-            "Not sure / Haven't thought about it"
-          ]
-        },
-        {
-          text: "Are you prepared for an adjustment period that could last weeks or months?",
-          options: [
-            "Yes, I understand it takes time.",
-            "I expect the pet to adjust quickly.",
-            "I'm not sure what to expect."
-          ]
-        },
-        {
-          text: "If you have to move in the future, what are your plans for your pet?",
-          options: [
-            "The pet comes with me, no matter what.",
-            "I would try to find pet-friendly housing.",
-            "I might have to rehome the pet.",
-            "Depends on the circumstances."
-          ]
-        },
-        {
-           text: "How do you feel about shedding, potential damage to furniture, or house-training accidents?",
-           options: [
-            "Acceptable and manageable parts of pet ownership.",
-            "Concerned, I prefer minimal mess.",
-            "These would be major issues for me."
-           ]
-        },
-        {
-            text: "What kind of training methods do you believe in or plan to use?",
-            options: [
-                "Positive reinforcement (rewards, praise)",
-                "Correction-based methods",
-                "A mix of both",
-                "I will hire a professional trainer",
-                "Unsure"
-            ]
-        }
-      ],
-      answers: []
+      validIdFile: null,
+      houseImageFile: null,
     }
   },
   mounted() {
-    this.checkScreenSize();
-    window.addEventListener('resize', this.checkScreenSize);
-    window.addEventListener('scroll', this.handleScroll);
-    this.addGlobalStyles();
+    window.addEventListener('resize', this.handleResizeSidebar);
+    this.checkTablet();
+    this.checkTouch();
+    window.addEventListener('resize', this.checkTablet);
+    window.addEventListener('resize', this.checkTouch);
+    document.addEventListener('click', this.handleDocumentClick);
+    document.addEventListener('keydown', this.handleKeydown);
   },
   beforeUnmount() {
-    window.removeEventListener('resize', this.checkScreenSize);
-    window.removeEventListener('scroll', this.handleScroll);
+    window.removeEventListener('resize', this.handleResizeSidebar);
+    window.removeEventListener('resize', this.checkTablet);
+    window.removeEventListener('resize', this.checkTouch);
+    document.removeEventListener('click', this.handleDocumentClick);
+    document.removeEventListener('keydown', this.handleKeydown);
   },
   methods: {
-    addGlobalStyles() {
-      const style = document.createElement('style');
-      style.innerHTML = `
-        body {
-          margin: 0;
-          padding: 0;
-          overflow-x: hidden;
-        }
-        html {
-          box-sizing: border-box;
-        }
-        *, *:before, *:after {
-          box-sizing: inherit;
-        }
-      `;
-      document.head.appendChild(style);
+    closeAllDropdowns() {
+      this.showResourcesDropdown = false;
+      this.showUserDropdown = false;
+      this.showMobileResourcesDropdown = false;
+      this.showMobileUserDropdown = false;
     },
-    toggleMobileMenu() {
-      this.mobileMenuOpen = !this.mobileMenuOpen;
-      if (!this.mobileMenuOpen) {
-        this.dropdownOpen = false;
+    toggleMobileResourcesDropdown() {
+      this.showMobileResourcesDropdown = !this.showMobileResourcesDropdown;
+    },
+    toggleMobileUserDropdown() {
+      this.showMobileUserDropdown = !this.showMobileUserDropdown;
+    },
+    handleResizeSidebar() {
+      if (window.innerWidth > 768 && this.sidebarOpen) {
+        this.sidebarOpen = false;
       }
-      document.body.style.overflow = this.mobileMenuOpen ? 'hidden' : '';
+      this.closeAllDropdowns();
     },
-    toggleDropdown(event) {
-      if (this.isMobile) {
+    checkTablet() {
+      this.isTablet = window.innerWidth >= 769 && window.innerWidth <= 1024;
+    },
+    checkTouch() {
+      this.isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+    },
+    handleResourcesClick(event) {
+      if (this.isTablet || this.isTouch) {
         event.preventDefault();
-        this.dropdownOpen = !this.dropdownOpen;
+        this.showResourcesDropdown = !this.showResourcesDropdown;
+        if (this.showResourcesDropdown) this.showUserDropdown = false;
       }
     },
-    closeMenuIfMobile() {
-      if (this.isMobile) {
-        this.mobileMenuOpen = false;
-        this.dropdownOpen = false;
-        document.body.style.overflow = '';
+    handleAccountClick(event) {
+      if (this.isTablet || this.isTouch) {
+        event.preventDefault();
+        this.showUserDropdown = !this.showUserDropdown;
+        if (this.showUserDropdown) this.showResourcesDropdown = false;
       }
     },
-    checkScreenSize() {
-      this.isMobile = window.innerWidth <= 768;
-      if (!this.isMobile) {
-        this.mobileMenuOpen = false;
-        this.dropdownOpen = false;
-        document.body.style.overflow = '';
-      }
+    handleResourcesMouseEnter() {
+      if (!this.isTablet && !this.isTouch) this.showResourcesDropdown = true;
     },
-    handleScroll() {
-      this.hasScrolled = window.scrollY > 20;
+    handleResourcesMouseLeave() {
+      if (!this.isTablet && !this.isTouch) this.showResourcesDropdown = false;
     },
-    openApplicationForm() {
-        this.showApplicationForm = true;
-        this.currentApplicationStep = 1;
-        this.application.applicationDate = new Date().toISOString().slice(0,10); // Reset date
+    handleAccountMouseEnter() {
+      if (!this.isTablet && !this.isTouch) this.showUserDropdown = true;
     },
-    closeApplicationForm() {
-        this.showApplicationForm = false;
-        this.currentApplicationStep = 1;
-
+    handleAccountMouseLeave() {
+      if (!this.isTablet && !this.isTouch) this.showUserDropdown = false;
     },
-    proceedToUploadsAndFinalize() {
-      // Basic validation example: check if required fields for step 1 are filled
-      // You would typically have more robust validation
-      const step1Form = this.$el.querySelector('.adoption-form');
-      if (step1Form && step1Form.checkValidity()) {
-        this.currentApplicationStep = 2;
-        // Scroll to top of form content when changing step
-        const formContent = this.$el.querySelector('.form-content');
-        if (formContent) formContent.scrollTop = 0;
-      } else {
-        // Trigger browser's default validation UI or show custom messages
-        step1Form.reportValidity();
-        alert('Please fill out all required fields in Step 1 before proceeding.');
-      }
-    },
-    handleFileUpload(event, fileDataProperty) {
-        const file = event.target.files[0];
-        if (file) {
-            this[fileDataProperty] = file;
-            console.log(`${fileDataProperty} selected:`, file.name);
-        } else {
-            this[fileDataProperty] = null;
-        }
-    },
-    submitFullApplication() {
-      const step2Form = this.$el.querySelector('.adoption-form');
-       if (step2Form && step2Form.checkValidity()) {
-        console.log('Full Application Submitted:', this.application);
-        if (this.homePhotoFile) {
-            console.log('Home Photo File:', this.homePhotoFile.name, this.homePhotoFile.type);
-        }
-        if (this.idPhotoFile) {
-            console.log('ID Photo File:', this.idPhotoFile.name, this.idPhotoFile.type);
-        }
-
-        alert('Application submitted successfully! Please complete the questionnaire below.');
-        this.closeApplicationForm();
-        this.showQuestionnaire = true;
-      } else {
-         step2Form.reportValidity();
-         alert('Please fill out all required fields in Step 2 and complete acknowledgements.');
-      }
-    },
-    selectAnswer(questionIndex, optionIndex) {
-      this.answers[questionIndex] = optionIndex;
-    },
-    submitQuestionnaire() {
-      console.log('Questionnaire submitted:', this.answers);
-      const allAnswered = this.answers.length === this.questions.length && this.answers.every(ans => ans !== undefined && ans !== null);
-      if (!allAnswered) {
-        alert('Please answer all questionnaire questions.');
+    handleDocumentClick(e) {
+      const navBar = this.$el.querySelector('.nav-bar');
+      const sideBar = this.$el.querySelector('.side_bar');
+      if (
+        (navBar && navBar.contains(e.target)) ||
+        (sideBar && sideBar.contains(e.target))
+      ) {
+        // Click is inside nav or sidebar, do nothing
         return;
       }
-      alert('Thank you for completing the questionnaire!');
-      this.answers = Array(this.questions.length).fill(null); // Reset answers
-      this.showQuestionnaire = false;
-    }
+      this.closeAllDropdowns();
+    },
+    handleKeydown(e) {
+      // Esc closes dropdowns
+      if (e.key === 'Escape') {
+        this.closeAllDropdowns();
+      }
+      // Tab/Enter for accessibility
+      // (implement as needed for your nav structure)
+    },
+    submitApplication() {
+      alert('Application submitted!');
+      this.showApplicationModal = false;
+    },
+    handleFileUpload(event, fileDataProperty) {
+      const file = event.target.files[0];
+      const maxSize = 5 * 1024 * 1024; // 5MB in bytes
+      
+      if (file) {
+        if (file.size > maxSize) {
+          alert('File size must be less than 5MB');
+          event.target.value = ''; // Clear the file input
+          this[fileDataProperty] = null;
+          return;
+        }
+        this[fileDataProperty] = file;
+      } else {
+        this[fileDataProperty] = null;
+      }
+    },
+    validateZIP(event) {
+      // Remove any non-numeric characters
+      let value = event.target.value.replace(/[^0-9]/g, '');
+      // Limit to 4 digits
+      value = value.slice(0, 4);
+      // Update the input value
+      this.application.addressZIP = value;
+    },
+    validateAge(event) {
+      // Remove any non-numeric characters
+      let value = event.target.value.replace(/[^0-9]/g, '');
+      // Limit to 2 digits
+      value = value.slice(0, 2);
+      // Update the input value
+      this.application.age = value;
+    },
+    validatePhoneWork(event) {
+      // Remove any non-numeric characters
+      let value = event.target.value.replace(/[^0-9]/g, '');
+      // Limit to 11 digits
+      value = value.slice(0, 11);
+      // Update the input value
+      this.application.phoneNumberWork = value;
+    },
+    validatePhoneMobile(event) {
+      // Remove any non-numeric characters
+      let value = event.target.value.replace(/[^0-9]/g, '');
+      // Limit to 11 digits
+      value = value.slice(0, 11);
+      // Update the input value
+      this.application.phoneNumber = value;
+    },
   }
 }
 </script>
 
-<style scoped>
-/* NAV STYLES (mostly unchanged) */
-.nav-container {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background-color: #F9A826;
-  padding: 0.75rem 2rem;
-  color: white;
-  position: sticky;
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap');
+@import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css');
+
+:root {
+  --primary-color: #ff914d;
+  --bg-color: #f0f0f0;
+  --shadow-light: #ffffff;
+  --shadow-dark: #d3d3d3;
+  --text-color: #555;
+  --sidebar-width: 300px;
+  --nav-height: 70px;
+  --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Poppins', sans-serif;
+}
+
+body {
+  background: var(--bg-color);
+}
+
+/* Hidden checkbox */
+.hidden-checkbox {
+  position: absolute;
+  opacity: 0;
+  height: 0;
+  width: 0;
+}
+
+/* Navigation Bar */
+.nav-bar {
+  width: 100%;
+  height: var(--nav-height);
+  background: var(--bg-color);
+  position: fixed;
   top: 0;
   left: 0;
-  right: 0;
-  width: 100%;
   z-index: 1000;
-  transition: all 0.3s ease;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
-.nav-scrolled {
-  padding: 0.5rem 2rem;
-  background-color: rgba(249, 168, 38, 0.95);
-  backdrop-filter: blur(10px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+.menu-container {
+  max-width: 1400px;
+  height: 100%;
+  margin: 0 auto;
+  padding: 0 5px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
-.logo-container {
+.logo {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
 }
 
-.logo-image {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: transform 0.3s ease;
-}
-
-.logo-container:hover .logo-image {
-  transform: scale(1.1) rotate(5deg);
-}
-
-.logo-text {
-  font-size: 1.75rem;
+.logo a {
+  font-size: 1.8rem;
   font-weight: 800;
-  letter-spacing: 1.5px;
-  color: white;
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
-  transition: transform 0.3s ease;
+  text-decoration: none;
+  color: var(--primary-color);
+  letter-spacing: 1px;
+  transition: var(--transition);
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
 }
 
-.logo-container:hover .logo-text {
-  transform: translateX(3px);
+.logo a:hover {
+  transform: scale(1.05);
 }
 
-.nav-links-container {
+/* Desktop Navigation */
+.nav-links {
+  list-style: none;
+  display: flex;
+  gap: 10px;
+}
+
+.nav-links li {
+  display: flex;
+  align-items: center;
+}
+
+.nav-links a {
+  text-decoration: none;
+  font-size: 1rem;
+  color: var(--text-color);
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  padding: 10px 10px;
+  border-radius: 15px;
+  transition: var(--transition);
+  background: var(--bg-color);
+  box-shadow:
+    8px 8px 16px var(--shadow-dark),
+    -8px -8px 16px var(--shadow-light);
+  white-space: nowrap;
+}
+
+.nav-links a:hover {
+  color: var(--primary-color);
+  transform: translateY(-2px);
+  box-shadow:
+    4px 4px 8px var(--shadow-dark),
+    -4px -4px 8px var(--shadow-light);
+}
+
+.nav-links a:active {
+  transform: translateY(0);
+  box-shadow:
+    inset 3px 3px 6px var(--shadow-dark),
+    inset -3px -3px 6px var(--shadow-light);
+}
+
+.nav-text {
+  margin-left: 8px;
+}
+
+.icon-fix {
+  width: 20px;
+  text-align: center;
+  color: var(--primary-color);
+  transition: var(--transition);
+}
+
+.nav-links a:hover .icon-fix {
+  transform: scale(1.2);
+}
+
+/* Mobile Menu Button */
+.mobile-menu-button {
+  display: none;
+  cursor: pointer;
+  padding: 10px;
+  border-radius: 8px;
+  transition: var(--transition);
+  background: var(--bg-color);
+  box-shadow:
+    5px 5px 10px var(--shadow-dark),
+    -5px -5px 10px var(--shadow-light);
+  width: 40px;
+  height: 40px;
+  justify-content: center;
+  align-items: center;
+}
+
+.hamburger-icon {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  width: 20px;
+  height: 14px;
+}
+
+.hamburger-icon .bar {
+  height: 2px;
+  width: 100%;
+  background-color: var(--text-color);
+  transition: var(--transition);
+  border-radius: 2px;
+}
+
+.mobile-menu-button:hover {
+  transform: scale(1.05);
+}
+
+.mobile-menu-button:hover .bar {
+  background-color: var(--primary-color);
+}
+
+/* Transform hamburger to X when sidebar is open */
+.hidden-checkbox:checked ~ .nav-bar .mobile-menu-button .hamburger-icon .bar:nth-child(1) {
+  transform: translateY(6px) rotate(45deg);
+}
+
+.hidden-checkbox:checked ~ .nav-bar .mobile-menu-button .hamburger-icon .bar:nth-child(2) {
+  opacity: 0;
+}
+
+.hidden-checkbox:checked ~ .nav-bar .mobile-menu-button .hamburger-icon .bar:nth-child(3) {
+  transform: translateY(-6px) rotate(-45deg);
+}
+
+/* Sidebar Styles */
+.side_bar {
+  background: var(--bg-color);
+  position: fixed;
+  top: 0;
+  left: -100%;
+  height: 100%;
+  width: var(--sidebar-width);
+  z-index: 1001;
+  transition: var(--transition);
+  box-shadow: 10px 0 20px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+
+.hidden-checkbox:checked ~ .side_bar {
+  left: 0;
+}
+
+.sidebar-header {
+  height: var(--nav-height);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  border-bottom: 1px solid rgba(0,0,0,0.1);
+}
+
+.sidebar-content {
   flex: 1;
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  padding: 20px;
+  overflow-y: auto;
 }
 
-.nav-links {
-  display: flex;
-  gap: 2rem;
-  align-items: center;
+.sidebar-links {
+  list-style: none;
+  margin-bottom: 20px;
 }
 
-.nav-link {
-  color: white;
-  text-decoration: none;
-  font-size: 1.1rem;
-  font-weight: 600;
+.sidebar-links li {
+  margin-bottom: 15px;
+}
+
+.sidebar-links a {
   position: relative;
-  padding: 0.5rem 0;
-  transition: all 0.2s ease;
-}
-
-.nav-link:after {
-  content: '';
-  position: absolute;
-  width: 0;
-  height: 2px;
-  bottom: 0;
-  left: 0;
-  background-color: white;
-  transition: width 0.3s ease;
-}
-
-.nav-link:hover:after {
+  color: var(--text-color);
+  text-decoration: none;
+  font-size: 1rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
   width: 100%;
+  border-radius: 12px;
+  padding: 15px 20px;
+  transition: var(--transition);
+  background: var(--bg-color);
+  box-shadow:
+    5px 5px 10px var(--shadow-dark),
+    -5px -5px 10px var(--shadow-light);
 }
 
+.sidebar-links a:hover {
+  color: var(--primary-color);
+  padding-left: 25px;
+  transform: translateX(5px);
+  box-shadow:
+    3px 3px 6px var(--shadow-dark),
+    -3px -3px 6px var(--shadow-light);
+}
+
+.sidebar-links a:active {
+  transform: translateX(5px) scale(0.98);
+  box-shadow:
+    inset 2px 2px 5px var(--shadow-dark),
+    inset -2px -2px 5px var(--shadow-light);
+}
+
+.sidebar-footer {
+  padding: 20px 0;
+  margin-top: auto;
+}
+
+.media_icons {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+}
+
+.media_icons a {
+  height: 45px;
+  width: 45px;
+  border-radius: 50%;
+  text-align: center;
+  line-height: 45px;
+  color: var(--text-color);
+  font-size: 1.1rem;
+  background: var(--bg-color);
+  transition: var(--transition);
+  box-shadow:
+    5px 5px 10px var(--shadow-dark),
+    -5px -5px 10px var(--shadow-light);
+}
+
+.media_icons a:hover {
+  color: var(--primary-color);
+  transform: translateY(-3px) scale(1.1);
+}
+
+.close-sidebar {
+  height: 40px;
+  width: 40px;
+  text-align: center;
+  line-height: 40px;
+  cursor: pointer;
+  transition: var(--transition);
+  color: var(--text-color);
+  background: var(--bg-color);
+  border-radius: 50%;
+  box-shadow:
+    3px 3px 6px var(--shadow-dark),
+    -3px -3px 6px var(--shadow-light);
+}
+
+.close-sidebar:hover {
+  color: var(--primary-color);
+  transform: rotate(90deg);
+}
+
+/* Dropdown Styles */
 .dropdown {
   position: relative;
 }
 
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  min-width: 200px;
+  background: #fff;
+  border-radius: 4px;
+  padding: 10px 0;
+  box-shadow: none;
+  z-index: 1000;
+  animation: fadeIn 0.3s ease;
+  transition: opacity 0.2s, transform 0.2s;
+  right: auto;
+}
+
+.dropdown-menu[aria-expanded="true"] {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
+.dropdown-menu[aria-expanded="false"] {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-10px);
+}
+
+.dropdown-menu li {
+  margin: 0;
+}
+
+.dropdown-item {
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  color: var(--text-color);
+  white-space: nowrap;
+  width: 100%;
+  transition: all 0.3s ease;
+}
+
+.dropdown-item i {
+  margin-right: 10px;
+  width: 20px;
+  text-align: center;
+}
+
+/* Profile Item - Subtle Highlight */
+.profile-item:hover {
+  background: rgba(255,145,77,0.1);
+  color: var(--primary-color);
+}
+
+/* Logout Item - Standout Highlight */
+.logout-item:hover {
+  background: rgba(255, 80, 80, 0.1);
+  color: #ff5050;
+  font-weight: 600;
+}
+
 .dropdown-arrow {
-  font-size: 0.7rem;
-  vertical-align: middle;
-  margin-left: 4px;
+  margin-left: 8px;
+  font-size: 0.8rem;
   transition: transform 0.3s ease;
 }
 
-.arrow-rotated {
+.dropdown:hover .dropdown-arrow {
   transform: rotate(180deg);
 }
 
-.dropdown-content {
+/* User Dropdown Specific */
+.user-dropdown-menu {
+  right: 0;
+  left: auto;
   min-width: 180px;
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
-  border-radius: 8px;
-  overflow: hidden;
-  z-index: 1;
 }
 
-.dropdown-content.desktop {
-  display: none;
-  position: absolute;
-  top: 100%;
-  left: 50%;
-  transform: translateX(-50%);
-  margin-top: 0.75rem;
-  background-color: white;
-  opacity: 0;
-  pointer-events: none;
-  transition: all 0.3s ease;
+/* Mobile Dropdown Styles */
+.mobile-dropdown-menu {
+  padding-left: 20px;
+  margin-top: 5px;
+  animation: fadeIn 0.3s ease;
 }
 
-.dropdown:hover .dropdown-content.desktop {
-  display: block;
-  opacity: 1;
-  pointer-events: auto;
+.mobile-dropdown-menu li {
+  margin-bottom: 5px;
 }
 
-.dropdown-content a {
-  padding: 0.75rem 1rem;
-  text-decoration: none;
-  display: block;
-  transition: all 0.2s ease;
+.mobile-dropdown-menu .dropdown-item {
+  padding: 10px 15px;
 }
 
-.dropdown-content.desktop a {
-  color: #333;
-  font-weight: 500;
+.mobile-dropdown-menu .profile-item:hover {
+  background: rgba(255,145,77,0.1);
+  color: var(--primary-color);
+  padding-left: 25px;
 }
 
-.dropdown-content.desktop a:hover {
-  background-color: #f8f8f8;
-  padding-left: 1.25rem;
+.mobile-dropdown-menu .logout-item:hover {
+  background: rgba(255, 80, 80, 0.1);
+  color: #ff5050;
+  font-weight: 600;
+  padding-left: 25px;
 }
 
-.dropdown-content.mobile {
-  background-color: rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
-  margin-top: 0.5rem;
+
+.rotate-arrow {
+  transform: rotate(180deg);
 }
 
-.dropdown-content.mobile a {
-  color: white;
-  padding: 0.75rem 1.5rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-.dropdown-content.mobile a:last-child {
-  border-bottom: none;
+/* Responsive Styles */
+@media (max-width: 1024px) {
+  .nav-links a {
+    padding: 10px 15px;
+    font-size: 0.9rem;
+  }
 }
 
-.right-section {
-  display: flex;
-  align-items: center;
-  gap: 1.5rem;
-}
-
-.user-icon {
-  color: white;
-  cursor: pointer;
-  width: 36px;
-  height: 36px;
-  background-color: rgba(255, 255, 255, 0.2);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.3s ease;
-}
-
-.user-icon:hover {
-  transform: scale(1.1);
-  background-color: rgba(255, 255, 255, 0.3);
-}
-
-.mobile-menu-toggle {
-  display: none;
-  flex-direction: column;
-  justify-content: space-between;
-  width: 28px;
-  height: 20px;
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  padding: 0;
-  z-index: 10;
-}
-
-.bar {
-  height: 3px;
-  width: 100%;
-  background-color: white;
-  border-radius: 10px;
-  transition: all 0.3s ease-in-out;
-}
-
-.bar-1-active {
-  transform: translateY(8px) rotate(45deg);
-}
-
-.bar-2-active {
-  opacity: 0;
-}
-
-.bar-3-active {
-  transform: translateY(-8px) rotate(-45deg);
-}
-
-.fade-enter-active, .fade-leave-active {
-  transition: opacity 0.3s ease;
-}
-
-.fade-enter-from, .fade-leave-to {
-  opacity: 0;
-}
-
-.slide-fade-enter-active, .slide-fade-leave-active {
-  transition: all 0.3s ease;
-}
-
-.slide-fade-enter-from, .slide-fade-leave-to {
-  transform: translateY(-20px);
-  opacity: 0;
-}
 
 @media (max-width: 900px) {
-  .nav-links {
-    gap: 1.5rem;
+  .rich-form, .modal-content {
+    max-width: 100vw;
+    width: 100vw;
+    min-width: 0;
+    padding: 0.5rem 0.1rem 0.7rem 0.1rem;
+    border-radius: 0;
+  }
+  .rich-form-grid {
+    padding: 0.7rem 0.2rem 1.1rem 0.2rem;
+    border-radius: 8px;
+    margin-top: 0.5rem;
+  }
+  .section-header {
+    font-size: 1.05rem;
+    padding: 0.4rem 0.5rem;
+    margin-bottom: 1rem;
+  }
+  .modern-group label {
+    font-size: 0.98rem;
+  }
+  .modern-group input {
+    font-size: 0.98rem;
+    padding: 0.8rem 0.7rem 0.4rem 0.7rem;
+  }
+  .rich-submit {
+    font-size: 1rem;
+    padding: 0.8rem 1.2rem;
+    border-radius: 8px;
+  }
+  .step-indicator {
+    font-size: 0.98rem;
   }
 }
 
+
 @media (max-width: 768px) {
-  .nav-container {
-    padding: 0.75rem 1.25rem;
-  }
-
-  .logo-text {
-    font-size: 1.5rem;
-  }
-
-  .mobile-menu-toggle {
-    display: flex;
-  }
-
-  .nav-links-container {
-    position: static;
-  }
-
   .nav-links {
-    position: fixed;
-    top: 0;
+    display: none !important;
+  }
+  .mobile-menu-button {
+    display: flex !important;
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    z-index: 1100;
+  }
+  .side_bar {
+    width: var(--sidebar-width);
+    max-width: 100vw;
+    min-width: 260px;
+    left: -100%;
+    box-shadow: 8px 0 24px rgba(0,0,0,0.08);
+    border-top-right-radius: 16px;
+    border-bottom-right-radius: 16px;
+    background: var(--bg-color);
+    padding-top: 0;
+  }
+  .hidden-checkbox:checked ~ .side_bar {
     left: 0;
-    right: 0;
-    bottom: 0;
-    flex-direction: column;
-    justify-content: center;
+  }
+  .sidebar-header {
+    padding: 0 20px;
+    height: 70px;
+    border-bottom: none;
+    box-shadow: none;
+    background: var(--bg-color);
+    border-top-right-radius: 16px;
+  }
+  .sidebar-links {
+    margin-top: 20px;
+  }
+  .sidebar-links a {
+    margin-bottom: 10px;
+    box-shadow:
+      4px 4px 12px var(--shadow-dark),
+      -4px -4px 12px var(--shadow-light);
+    background: var(--bg-color);
+    border-radius: 12px;
+    padding: 12px 20px;
+    font-size: 1rem;
+    color: var(--text-color);
+    display: flex;
     align-items: center;
-    background-color: #F9A826;
-    padding: 2rem;
-    gap: 1.5rem;
-    z-index: 5;
-    transition: all 0.3s ease;
-    overflow-y: auto;
-    padding-top: 5rem; /* Ensure content below nav bar */
-    width: 100vw; /* Full width */
-    margin: 0; /* Reset margin */
+    gap: 10px;
+    transition: var(--transition);
   }
-
-  .mobile-active {
-    animation: slideIn 0.3s forwards;
+  .sidebar-links a:hover {
+    color: var(--primary-color);
+    background: #fff7f0;
+    box-shadow:
+      2px 2px 6px var(--shadow-dark),
+      -2px -2px 6px var(--shadow-light);
   }
-
-  .nav-link {
-    font-size: 1.3rem;
+  .sidebar-footer {
+    margin-top: auto;
+    padding-bottom: 24px;
+    display: flex;
+    justify-content: center;
   }
-
-  .nav-link:after {
-    height: 3px;
+  .media_icons {
+    display: flex;
+    gap: 18px;
+  }
+  .media_icons a {
+    height: 40px;
+    width: 40px;
+    border-radius: 50%;
+    background: var(--bg-color);
+    box-shadow:
+      2px 2px 8px var(--shadow-dark),
+      -2px -2px 8px var(--shadow-light);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-color);
+    font-size: 1.1rem;
+    transition: var(--transition);
+  }
+  .media_icons a:hover {
+    color: var(--primary-color);
+    background: #fff7f0;
+    transform: scale(1.08);
+  }
+  .close-sidebar {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    z-index: 1200;
+    background: var(--bg-color);
+    box-shadow:
+      2px 2px 8px var(--shadow-dark),
+      -2px -2px 8px var(--shadow-light);
   }
 }
 
 @media (max-width: 480px) {
-  .nav-container {
-    padding: 0.75rem 1rem;
+  .menu-container {
+    padding: 0 15px;
   }
-
-  .logo-text {
-    font-size: 1.3rem;
-  }
-
-  .user-icon {
-    width: 32px;
-    height: 32px;
-  }
-
-  .nav-links {
-    padding: 1.5rem;
-    gap: 1.25rem;
-  }
-}
-
-
-/* Pet Profile Card Styles */
-.pet-profile-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 2rem;
-  background-color: #f8f9fa; /* Light gray background */
-}
-
-.pet-card {
-  display: flex; /* For side-by-side image and info */
-  max-width: 900px; /* Max card width */
-  width: 100%;
-  background-color: white;
-  border-radius: 12px;
-  overflow: hidden; /* To respect border radius for image */
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
-  transition: transform 0.3s ease;
-}
-
-.pet-card:hover {
-  transform: translateY(-5px); /* Slight lift on hover */
-}
-
-.pet-image-container {
-  flex: 1; /* Takes up proportional space */
-  min-width: 300px; /* Minimum width for image area */
-  max-width: 400px; /* Maximum width for image area */
-  position: relative;
-  overflow: hidden;
-}
-
-.pet-image {
-  width: 100%;
-  height: 100%;
-  object-fit: cover; /* Cover the area, might crop */
-  display: block;
-  transition: transform 0.3s ease;
-}
-
-.pet-card:hover .pet-image {
-  transform: scale(1.05); /* Zoom image slightly on card hover */
-}
-
-.pet-info {
-  flex: 1.5; /* Takes more space than image */
-  padding: 2rem;
-  display: flex;
-  flex-direction: column;
-}
-
-.pet-name {
-  color: #546e7a; /* Darker text for name */
-  font-size: 2.2rem; /* Large name */
-  margin-top: 0;
-  margin-bottom: 1.5rem;
-  font-weight: 700;
-}
-
-.pet-details {
-  display: flex;
-  flex-wrap: wrap; /* Allow details to wrap */
-  gap: 1rem; /* Space between detail items */
-  margin-bottom: 1.5rem;
-}
-
-.detail-item {
-  background-color: #f1f8fe; /* Light blue background for tags */
-  padding: 0.5rem 1rem;
-  border-radius: 20px; /* Pill shape */
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.detail-label {
-  color: #607d8b; /* Muted label color */
-  font-weight: 600;
-}
-
-.detail-value {
-  color: #455a64; /* Darker value color */
-}
-
-.pet-description {
-  color: #607d8b;
-  line-height: 1.6;
-  font-size: 1.1rem;
-  margin-bottom: 2rem;
-  flex-grow: 1; /* Allows description to take available space */
-}
-
-.adoption-button {
-  align-self: flex-start; /* Align button to the left */
-  background-color: #F9A826; /* Theme color */
-  color: white;
-  border: none;
-  padding: 0.8rem 1.5rem;
-  border-radius: 30px; /* Rounded button */
-  font-weight: 600;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 8px rgba(249, 168, 38, 0.3);
-}
-
-.adoption-button:hover {
-  background-color: #e89921; /* Darken on hover */
-  transform: translateY(-2px);
-}
-
-/* Process adoption */
-.adoption-process {
-  background-color: #f8f9fa;
-  padding: 3rem 1rem;
-  margin-bottom: 2rem;
-}
-
-.container {
-  text-align: center;
-  margin: 0 auto;
-  max-width: 1200px;
-}
-
-.title {
-  font-size: 2rem;
-  font-weight: bold;
-  margin-bottom: 2rem;
-  color: #546e7a;
-}
-
-.steps {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 10px; /* Gap between step and line */
-}
-
-.step {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  padding: 1rem; /* Spacing around each step content */
-  width: 120px; /* Fixed width for each step container */
-}
-
-.circle {
-  background-color: #F9A826;
-  color: white;
-  font-weight: bold;
-  font-size: 1.25rem;
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 0.75rem; /* Space between circle and text */
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-
-.step:hover .circle {
-  transform: scale(1.1);
-  box-shadow: 0 6px 12px rgba(0,0,0,0.15);
-}
-
-.line {
-  width: 50px; /* Length of the line */
-  height: 3px;
-  background-color: #F9A826;
-  position: relative; /* For potential future animations or pseudo-elements */
-}
-
-.step p {
-  color: #607d8b;
-  font-weight: 600;
-  margin-top: 0.5rem; /* Ensure consistency if margin-bottom on circle changes */
-}
-
-
-/* Make steps stack vertically on smaller screens */
-@media (max-width: 600px) {
-  .steps {
-    flex-direction: column; /* Stack steps vertically */
-  }
-  .line {
-    width: 3px; /* Line becomes vertical */
-    height: 30px; /* Height of the vertical line */
-  }
-}
-
-
-/* Application Form Styles */
-.application-form-section {
-  width: 100%;
-}
-
-.form-container {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.6); /* Darker overlay */
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 2000;
-  opacity: 0;
-  visibility: hidden;
-  transition: opacity 0.3s ease, visibility 0.3s ease;
-}
-
-.show-form {
-  opacity: 1;
-  visibility: visible;
-}
-
-.form-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-}
-
-.form-content {
-  background: white;
-  border-radius: 10px;
-  width: 90%;
-  max-width: 800px; /* Max width for larger screens */
-  max-height: 90vh; /* Max height to prevent overflow */
-  overflow-y: auto; /* Scroll if content exceeds max height */
-  padding: 25px 35px; /* More padding */
-  position: relative;
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
-  transform: translateY(20px);
-  transition: transform 0.3s ease;
-}
-
-.show-form .form-content {
-  transform: translateY(0);
-}
-
-.close-form-btn {
-  position: absolute;
-  top: 15px;
-  right: 15px;
-  background: none;
-  border: none;
-  font-size: 28px; /* Larger close button */
-  cursor: pointer;
-  color: #aaa; /* Lighter color */
-  transition: color 0.3s ease;
-}
-
-.close-form-btn:hover {
-  color: #F9A826; /* Theme color on hover */
-}
-
-.form-title {
-  font-size: 26px; /* Adjusted title size */
-  color: #F9A826; /* Theme color for title */
-  margin-bottom: 8px;
-  text-align: center;
-}
-
-.form-description {
-  color: #777; /* Softer description color */
-  text-align: center;
-  margin-bottom: 25px;
-  line-height: 1.5;
-}
-
-.adoption-form h3 {
+ 
+  .logo a {
     font-size: 1.5rem;
-    color: #546e7a;
-    margin-top: 25px;
-    margin-bottom: 15px;
-    padding-bottom: 5px;
-    border-bottom: 1px solid #eee;
+  }
+ 
+  .side_bar {
+    width: 100vw;
+    min-width: 0;
+    border-radius: 0;
+  }
+  .sidebar-header {
+    border-radius: 0;
+  }
+  .sidebar-links a {
+    padding: 15px 20px;
+  }
 }
-.adoption-form h3:first-of-type {
-    margin-top: 0;
-}
-
-
-.form-group {
-  margin-bottom: 18px; /* Slightly reduced margin */
-}
-
-.input-row {
-  display: flex;
-  gap: 18px; /* Consistent gap */
-  margin-bottom: 18px;
-}
-
-.input-row .form-group {
-  flex: 1;
-  margin-bottom: 0; /* Remove bottom margin for items in a row */
+.logo-img {
+  height: 38px;
+  width: 38px;
+  margin-right: 10px;
 }
 
-.form-group label {
-  display: block;
-  margin-bottom: 8px; /* Spacing between label and input */
-  font-weight: 600; /* Bolder labels */
-  color: #555;
-  font-size: 0.95rem;
+.dropdown-menu i,
+.mobile-dropdown-menu i {
+  margin-right: 10px;
 }
-.form-group label.checkbox-label {
-    font-weight: normal;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    color: #666;
-}
-.form-group label.checkbox-label input[type="checkbox"] {
-    width: auto;
-    margin-right: 5px; /* Accent color for checkboxes */
-    accent-color: #F9A826;
 
+@media (max-width: 1200px) {
+  .modern-form-row {
+    flex-direction: column;
+    gap: 1.2rem;
+    flex-wrap: nowrap;
+  }
+  .rich-form-grid {
+    padding: 1.2rem 0.7rem 1.2rem 0.7rem;
+  }
+  .section-header {
+    font-size: 1.08rem;
+    padding: 0.5rem 0.7rem;
+  }
 }
-.form-group input[type="text"],
-.form-group input[type="email"],
-.form-group input[type="tel"],
-.form-group input[type="date"],
-.form-group textarea,
-.form-group select {
+.rich-form, .modal-content {
+  max-width: 700px;
   width: 100%;
-  padding: 12px 15px; /* Comfortable padding */
-  border: 1px solid #ccc; /* Softer border */
-  border-radius: 6px; /* Slightly more rounded */
+  min-width: 0;
+  margin: 0 auto;
+  overflow-x: hidden;
+}
+.dropdown-menu li a:hover,
+.user-dropdown-menu li a:hover,
+.dropdown-menu li a:focus,
+.user-dropdown-menu li a:focus {
+  background: transparent;
+  color: var(--primary-color);
+  border-left: 3px solid var(--primary-color);
+  padding-left: 17px;
+}
+.dropdown-menu li a:hover i,
+.user-dropdown-menu li a:hover i,
+.dropdown-menu li a:focus i,
+.user-dropdown-menu li a:focus i {
+  color: var(--primary-color);
+}
+
+.dropdown-menu,
+.user-dropdown-menu {
+  box-shadow: none;
+  background: #fff;
+  border: 1px solid #ececec;
+}
+
+.dropdown-item,
+.dropdown-menu li a,
+.user-dropdown-menu li a {
+  box-shadow: none;
+  background: transparent;
+  border-radius: 0;
+  border-bottom: 1px solid #f3f3f3;
+}
+
+.dropdown-menu li:last-child a,
+.user-dropdown-menu li:last-child a {
+  border-bottom: none;
+}
+
+.dropdown-menu li a:hover,
+.user-dropdown-menu li a:hover,
+.dropdown-menu li a:focus,
+.user-dropdown-menu li a:focus {
+  background: transparent;
+  color: var(--primary-color);
+  border-left: 3px solid var(--primary-color);
+  padding-left: 17px;
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+.modal-content {
+  background: #fff;
+  padding: 2rem;
+  border-radius: 10px;
+  max-width: 500px;
+  width: 100%;
+  position: relative;
+}
+.close-modal {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: #fff;
+  border: none;
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+  font-size: 1.3rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #888;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+  transition: all 0.2s ease;
+  z-index: 2001;
+}
+
+.close-modal:hover {
+  background: #ff914d;
+  color: #fff;
+}
+
+.close-modal:active {
+  transform: scale(0.95);
+}
+
+.pet-profile-card {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  background: #fff;
+  border-radius: 32px;
+  box-shadow: 0 6px 24px rgba(0,0,0,0.08);
+  padding: 2.5rem 2rem;
+  max-width: 800px;
+  margin: calc(var(--nav-height) + 2rem) auto 2.5rem auto;
+  gap: 2.5rem;
+}
+.pet-image-wrapper {
+  flex: 0 0 240px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+}
+.pet-image {
+  width: 240px;
+  height: 240px;
+  object-fit: cover;
+  border-radius: 24px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.10);
+}
+.pet-info-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: flex-start;
+}
+.pet-title {
+  font-size: 2.6rem;
+  font-weight: 700;
+  color: #546e7a;
+  margin-bottom: 0.5rem;
+}
+.pet-meta {
+  font-size: 1.1rem;
+  color: #6b7a8f;
+  margin-bottom: 1.2rem;
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+.pet-description {
+  color: #7a8ca3;
+  font-size: 1.08rem;
+  margin-bottom: 1.5rem;
+  line-height: 1.6;
+}
+.apply-btn {
+  background: #6b7a8f;
+  color: #fff;
+  font-size: 1.08rem;
+  font-weight: 500;
+  border: none;
+  border-radius: 18px;
+  padding: 0.7rem 1.7rem;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(107,122,143,0.10);
+  transition: background 0.2s, transform 0.2s;
+}
+.apply-btn:hover {
+  background: #ff914d;
+  color: #fff;
+  transform: translateY(-2px) scale(1.04);
+}
+@media (max-width: 700px) {
+  .pet-profile-card {
+    flex-direction: column;
+    align-items: center;
+    padding: 1.2rem 0.5rem;
+    gap: 1.2rem;
+  }
+  .pet-image-wrapper {
+    flex: none;
+  }
+  .pet-image {
+    width: 180px;
+    height: 180px;
+    border-radius: 18px;
+  }
+  .pet-title {
+    font-size: 2rem;
+  }
+}
+.pro-modal {
+  max-width: 700px;
+  width: 98vw;
+  background: #f8fafc;
+  border-radius: 18px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.13);
+  padding: 2.5rem 2rem 2rem 2rem;
+  position: relative;
+  overflow-y: auto;
+  max-height: 90vh;
+}
+.pro-close {
+  top: 18px;
+  right: 18px;
+  color: #888;
+  font-size: 2.2rem;
+  font-weight: 400;
+  transition: color 0.2s;
+}
+.pro-close:hover {
+  color: #ff914d;
+}
+.modal-progress {
+  font-size: 1.08rem;
+  color: #ff914d;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  letter-spacing: 0.5px;
+}
+.modal-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #546e7a;
+  margin-bottom: 1.2rem;
+}
+.pro-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.7rem;
+}
+.form-section {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  padding: 1.2rem 1rem 1.2rem 1rem;
+  margin-bottom: 0.5rem;
+}
+.form-section h3 {
+  font-size: 1.18rem;
+  color: #ff914d;
+  font-weight: 700;
+  margin-bottom: 1rem;
+}
+.form-row {
+  display: flex;
+  gap: 1.2rem;
+  margin-bottom: 0.7rem;
+}
+.form-group {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+.form-group label {
+  font-size: 0.98rem;
+  color: #546e7a;
+  font-weight: 500;
+}
+.form-group input,
+.form-group select {
+  padding: 0.6rem 0.9rem;
+  border: 1px solid #e0e7ef;
+  border-radius: 7px;
   font-size: 1rem;
-  transition: border-color 0.3s ease, box-shadow 0.3s ease;
-  background-color: #fdfdfd;
-}
-.form-group input[type="radio"] {
-    margin-right: 5px;
-    accent-color: #F9A826;
-}
-.form-group div > label { /* For radio button group labels */
-    margin-right: 15px;
-    font-weight: normal;
-    color: #666;
-}
-
-
-.form-group textarea {
-    min-height: 80px;
-    resize: vertical;
+  background: #f7fafd;
+  margin-top: 0.2rem;
+  transition: border 0.2s;
 }
 .form-group input:focus,
-.form-group textarea:focus,
 .form-group select:focus {
-  border-color: #F9A826;
-  box-shadow: 0 0 0 3px rgba(249, 168, 38, 0.25); /* Softer focus ring */
+  border: 1.5px solid #ff914d;
   outline: none;
 }
-.mt-small {
-    margin-top: 10px;
+.checkbox-group {
+  flex-direction: row;
+  align-items: center;
+  gap: 0.7rem;
 }
-
 .form-actions {
-  margin-top: 30px; /* More space before actions */
-  text-align: right; /* Align buttons to the right */
   display: flex;
   justify-content: flex-end;
-  gap: 10px;
+  margin-top: 1.2rem;
 }
-
-.submit-btn {
-  background-color: #F9A826;
-  color: white;
-  border: none;
-  padding: 12px 25px;
-  border-radius: 6px;
-  font-size: 1rem; /* Consistent font size */
-  font-weight: bold;
-  cursor: pointer;
-  transition: background-color 0.3s ease, transform 0.2s ease;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.submit-btn:hover {
-  background-color: #e89921; /* Darken on hover */
-  transform: translateY(-1px);
-}
-.submit-btn.secondary-btn {
-    background-color: #777;
-}
-.submit-btn.secondary-btn:hover {
-    background-color: #666;
-}
-
-
-/* Questionnaire Styles */
-.questionnaire-section {
-  padding: 2rem 1.5rem; /* Responsive padding */
-  background-color: #f0f4f8; /* Lighter, distinct background */
-  margin-top: 2rem;
-  border-radius: 8px;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-}
-
-.questionnaire-section .form-title {
-    color: #F9A826;
-    margin-bottom: 1.5rem;
-}
-
-.question {
-  margin-bottom: 2rem; /* More space between questions */
-  padding: 1.5rem;
-  background-color: #fff;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.07);
-}
-.question p:first-child {
-    font-weight: 600;
-    color: #334e68; /* Dark blue-gray for question text */
-    font-size: 1.1rem;
-    margin-bottom: 1rem;
-}
-
-.options {
-  display: flex;
-  flex-direction: column; /* Stack options vertically */
-  gap: 0.75rem; /* Space between option buttons */
-}
-
-.option-button {
-  background-color: #e1eaf2; /* Lighter, neutral base for options */
-  color: #334e68; /* Dark text for readability */
-  border: 1px solid #cbd6e0; /* Subtle border */
-  padding: 0.75rem 1.25rem; /* Generous padding */
-  border-radius: 6px;
-  font-weight: 500; /* Slightly less bold */
-  cursor: pointer;
-  transition: all 0.2s ease;
-  text-align: left; /* Align text to left */
-  font-size: 0.95rem;
-}
-
-.option-button:hover {
-  background-color: #F9A826; /* Theme color highlight */
-  border-color: #F9A826;
-  color: white;
-  transform: translateX(3px); /* Slight shift on hover */
-}
-
-.option-button.selected {
-  background-color: #F9A826; /* Clear selected state */
-  color: white;
-  border-color: #e89921; /* Darker border for selected */
+.pro-submit {
+  background: #ff914d;
+  color: #fff;
+  font-size: 1.1rem;
   font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  padding: 0.7rem 2.2rem;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(255,145,77,0.10);
+  transition: background 0.2s, transform 0.2s;
 }
-
-.selected-answer {
-  margin-top: 1rem;
+.pro-submit:hover {
+  background: #ffb07b;
+  color: #fff;
+  transform: translateY(-2px) scale(1.03);
+}
+@media (max-width: 600px) {
+  .pro-modal {
+    padding: 1.1rem 0.3rem 1.1rem 0.3rem;
+    max-width: 99vw;
+  }
+  .form-row {
+    flex-direction: column;
+    gap: 0.2rem;
+  }
+  .form-section {
+    padding: 0.7rem 0.3rem;
+  }
+  .modal-title {
+    font-size: 1.3rem;
+  }
+}
+.form-modern {
+  padding-top: 0.5rem;
+  background: #f8fafc;
+  border-radius: 18px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.13);
+  max-width: 900px;
+  width: 98vw;
+  position: relative;
+  overflow-y: auto;
+  max-height: 95vh;
+}
+.modal-bar {
+  height: 8px;
+  width: 100%;
+  background: #ff914d;
+  border-radius: 18px 18px 0 0;
+  margin-bottom: 1.2rem;
+}
+.section-header {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #444;
+  margin-bottom: 1.2rem;
+  margin-top: 0.5rem;
+  letter-spacing: 0.5px;
+}
+.modern-form-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+.modern-form-row {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+  margin-bottom: 1.2rem;
+  max-width: 100%;
+  min-width: 0;
+}
+.modern-form-col {
+  flex: 1 1 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1.3rem;
+  min-width: 0;
+  max-width: 100%;
+}
+.modern-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+.modern-row-2 {
+  display: flex;
+  gap: 0.7rem;
+  flex-wrap: wrap;
+  min-width: 0;
+  max-width: 100%;
+}
+.modern-row-3 {
+  display: flex;
+  gap: 0.7rem;
+  flex-wrap: wrap;
+  min-width: 0;
+  max-width: 100%;
+}
+.modern-row-3 input {
+  min-width: 0;
+  flex: 1 1 0;
+  max-width: 100%;
+}
+.modern-group input {
+  border: 2px solid #b5d6f6;
+  border-radius: 7px;
+  background: #fafdff;
+  padding: 0.6rem 0.9rem;
+  font-size: 1rem;
+  margin-top: 0.2rem;
+  transition: border 0.2s;
+  outline: none;
+}
+.modern-group input:focus {
+  border: 2px solid #ff914d;
+}
+.modern-group label {
+  font-size: 0.98rem;
+  color: #444;
   font-weight: 500;
-  color: #546e7a;
-  font-size: 0.9rem;
-  padding-left: 0.5rem;
-  border-left: 3px solid #F9A826;
 }
-.questionnaire-submit-btn {
-    display: block;
-    margin: 2rem auto 0;
-    padding: 0.8rem 2rem;
+.modern-radio-row {
+  display: flex;
+  gap: 1.2rem;
+  align-items: center;
 }
-
-@media (max-width: 768px) {
-    .form-content {
-        padding: 20px;
-    }
-    .adoption-form h3 {
-        font-size: 1.3rem;
-    }
-    .input-row {
-        flex-direction: column;
-        gap: 0;
-    }
-    .input-row .form-group {
-        margin-bottom: 18px;
-    }
-    .questionnaire-section {
-        padding: 1.5rem 1rem;
-    }
-    .question {
-        padding: 1rem;
-    }
+.modern-radio-col {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }
-
+.radio-group label {
+  font-weight: 400;
+  color: #444;
+}
+@media (max-width: 800px) {
+  .modern-form-row {
+    flex-direction: column;
+    gap: 0.7rem;
+  }
+}
+@media (max-width: 600px) {
+  .rich-form, .modal-content {
+    max-width: 95vw;
+    width: 95vw;
+    min-width: 0;
+    margin: 2vw auto;
+    padding: 0.7rem 0.5rem 1.1rem 0.5rem;
+    border-radius: 12px;
+    box-sizing: border-box;
+  }
+  .rich-form-grid {
+    padding: 0.7rem 0.5rem 1.1rem 0.5rem;
+    border-radius: 10px;
+    margin-top: 0.5rem;
+  }
+  .rich-title {
+    font-size: 1rem;
+  }
+  .step-indicator {
+    font-size: 0.95rem;
+  }
+}
+.rich-form {
+  background: linear-gradient(135deg, #f8fafc 70%, #ffe5d0 100%);
+  border: 1.5px solid #ff914d33;
+  box-shadow: 0 10px 40px rgba(255,145,77,0.13), 0 2px 8px rgba(0,0,0,0.06);
+  padding-bottom: 2.5rem;
+  font-family: 'Inter', 'Poppins', Arial, sans-serif;
+  position: relative;
+}
+.rich-bar {
+  background: linear-gradient(90deg, #ff914d 60%, #ffb07b 100%);
+  height: 10px;
+  border-radius: 18px 18px 0 0;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 2px 8px #ff914d33;
+}
+.progress-bar {
+  width: 100%;
+  height: 7px;
+  background: #ffe5d0;
+  border-radius: 6px;
+  margin-bottom: 1.2rem;
+  overflow: hidden;
+}
+.progress-bar-inner {
+  width: 60%; /* Example: 60% complete */
+  height: 100%;
+  background: linear-gradient(90deg, #ff914d 60%, #ffb07b 100%);
+  border-radius: 6px;
+  transition: width 0.4s cubic-bezier(.4,2,.6,1);
+}
+.rich-form-grid {
+  background: #fff9f3;
+  border-radius: 20px;
+  box-shadow: 0 4px 24px #ff914d18, 0 1.5px 8px #ff914d11;
+  padding: 2.5rem 2rem 2rem 2rem;
+  border: 1.5px solid #ff914d22;
+  margin-top: 1.2rem;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: hidden;
+}
+.section-header {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #ff914d;
+  margin-bottom: 1.5rem;
+  margin-top: 0.5rem;
+  letter-spacing: 0.5px;
+  background: linear-gradient(90deg, #fff9f3 60%, #ffe5d0 100%);
+  padding: 0.7rem 1rem;
+  border-radius: 12px;
+  box-shadow: 0 1px 4px #ff914d11;
+}
+.modern-form-row {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+  margin-bottom: 1.2rem;
+  max-width: 100%;
+  min-width: 0;
+}
+.modern-form-col {
+  flex: 1 1 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1.3rem;
+  min-width: 0;
+  max-width: 100%;
+}
+.modern-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  position: relative;
+}
+.modern-group label {
+  font-size: 1.05rem;
+  color: #444;
+  font-weight: 500;
+  margin-bottom: 0.2rem;
+  letter-spacing: 0.01em;
+}
+.modern-group input {
+  border: 2px solid #e0e7ef;
+  border-radius: 9px;
+  background: #fafdff;
+  padding: 1.1rem 1.1rem 0.5rem 1.1rem;
+  font-size: 1.05rem;
+  margin-top: 0.1rem;
+  transition: border 0.2s, box-shadow 0.2s;
+  outline: none;
+  box-shadow: 0 1.5px 8px #ff914d11;
+}
+.modern-group input:focus {
+  border: 2px solid #ff914d;
+  box-shadow: 0 2px 12px #ff914d22;
+  background: #fff7f0;
+}
+.modern-group input::placeholder {
+  color: #b5b5b5;
+  opacity: 1;
+  font-size: 1rem;
+  font-style: italic;
+}
+.modern-row-2, .modern-row-3 {
+  display: flex;
+  gap: 0.7rem;
+  flex-wrap: wrap;
+  min-width: 0;
+  max-width: 100%;
+}
+.modern-row-3 input {
+  min-width: 0;
+  flex: 1 1 0;
+  max-width: 100%;
+}
+.rich-radio input[type="radio"] {
+  accent-color: #ff914d;
+  width: 1.3em;
+  height: 1.3em;
+  margin-right: 0.5em;
+  box-shadow: 0 1px 4px #ff914d22;
+  border-radius: 50%;
+  background: #fff9f3;
+  border: 2px solid #ff914d44;
+  transition: border 0.2s;
+}
+.rich-radio input[type="radio"]:focus {
+  border: 2px solid #ff914d;
+  outline: 2px solid #ff914d88;
+}
+.rich-radio label {
+  font-size: 1.08em;
+  color: #444;
+  font-weight: 500;
+  margin-right: 1.2em;
+  cursor: pointer;
+}
+.modern-radio-row {
+  display: flex;
+  gap: 1.5rem;
+  align-items: center;
+  margin-top: 0.2rem;
+}
+.modern-radio-col {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  margin-top: 0.2rem;
+}
+.rich-divider {
+  border: none;
+  border-top: 2px dashed #ff914d44;
+  margin: 2.2rem 0 1.2rem 0;
+}
+.required {
+  color: #ff5050;
+  font-size: 1.1em;
+  margin-left: 0.2em;
+}
+.rich-submit {
+  background: linear-gradient(90deg, #ff914d 60%, #ffb07b 100%);
+  color: #fff;
+  font-size: 1.18rem;
+  font-weight: 700;
+  border: none;
+  border-radius: 12px;
+  padding: 1.1rem 2.7rem;
+  cursor: pointer;
+  box-shadow: 0 2px 16px #ff914d33;
+  transition: background 0.2s, transform 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  margin-top: 1.2rem;
+}
+.rich-submit:hover {
+  background: linear-gradient(90deg, #ffb07b 60%, #ff914d 100%);
+  color: #fff;
+  transform: translateY(-2px) scale(1.04);
+  box-shadow: 0 4px 24px #ff914d33;
+}
+@media (max-width: 800px) {
+  .rich-form-grid {
+    padding: 1.1rem 0.5rem 1.1rem 0.5rem;
+  }
+  .modern-form-row {
+    flex-direction: column;
+    gap: 0.7rem;
+  }
+}
+@media (max-width: 600px) {
+  .rich-form, .modal-content {
+    max-width: 100vw;
+    width: 100vw;
+    min-width: 0;
+    padding: 0.2rem 0.05rem 0.5rem 0.05rem;
+    border-radius: 0;
+  }
+  .rich-form-grid {
+    padding: 0.4rem 0.05rem 0.7rem 0.05rem;
+    border-radius: 5px;
+    margin-top: 0.2rem;
+  }
+  .section-header {
+    font-size: 0.95rem;
+    padding: 0.2rem 0.2rem;
+    margin-bottom: 0.7rem;
+  }
+  .modern-group label {
+    font-size: 0.93rem;
+  }
+  .modern-group input {
+    font-size: 0.93rem;
+    padding: 0.7rem 0.5rem 0.3rem 0.5rem;
+  }
+  .rich-submit {
+    font-size: 0.95rem;
+    padding: 0.7rem 0.7rem;
+    border-radius: 6px;
+  }
+  .step-indicator {
+    font-size: 0.93rem;
+  }
+}
+.file-size-limit {
+  font-size: 0.85rem;
+  color: #666;
+  font-weight: normal;
+  font-style: italic;
+}
 </style>
+
+

@@ -1,9 +1,14 @@
 <template>
-  <router-view>
-  </router-view>
-
-
+  <div id="app">
+    <router-view></router-view>
+  </div>
 </template>
+
+<script>
+export default {
+  name: 'App'
+}
+</script>
 
 <style>
 * {
@@ -13,12 +18,9 @@
   font-family: 'Poppins', sans-serif;
 }
 
-body{
+body {
   background-color: #f5f5f5;
 }
-
-
-
 </style>
 
 

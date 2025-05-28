@@ -1,76 +1,131 @@
 <template>
-  <div class="dashboard">
-    <!-- Stats Cards -->
-    <div class="stats-grid">
-      <div class="stat-card">
-        <div class="stat-icon">
+  <div class="admin-layout">
+    <!-- Sidebar Navigation -->
+    <aside class="admin-sidebar">
+      <div class="sidebar-header">
+        <img src="/Designer.png" alt="Logo" class="logo-img" />
+        <span class="logo-text">PAWFECT</span>
+      </div>
+
+      <nav class="sidebar-nav">
+        <router-link to="/admin/dashboard" class="nav-item" active-class="active">
+          <i class="fas fa-chart-line"></i>
+          <span>Dashboard</span>
+        </router-link>
+        <router-link to="/admin/pets" class="nav-item" active-class="active">
           <i class="fas fa-paw"></i>
-        </div>
-        <div class="stat-info">
-          <h3>Total Pets</h3>
-          <p>{{ stats.totalPets }}</p>
-        </div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-icon">
-          <i class="fas fa-home"></i>
-        </div>
-        <div class="stat-info">
-          <h3>Available for Adoption</h3>
-          <p>{{ stats.availablePets }}</p>
-        </div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-icon">
+          <span>Pets</span>
+        </router-link>
+        <router-link to="/admin/applications" class="nav-item" active-class="active">
           <i class="fas fa-file-alt"></i>
-        </div>
-        <div class="stat-info">
-          <h3>Pending Applications</h3>
-          <p>{{ stats.pendingApplications }}</p>
-        </div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-icon">
-          <i class="fas fa-check-circle"></i>
-        </div>
-        <div class="stat-info">
-          <h3>Completed Adoptions</h3>
-          <p>{{ stats.completedAdoptions }}</p>
-        </div>
-      </div>
-    </div>
+          <span>Applications</span>
+        </router-link>
+        <router-link to="/admin/appointments" class="nav-item" active-class="active">
+          <i class="fas fa-calendar-check"></i>
+          <span>Appointments</span>
+        </router-link>
+        <router-link to="/admin/pet-history" class="nav-item" active-class="active">
+          <i class="fas fa-history"></i>
+          <span>Pet History</span>
+        </router-link>
+      </nav>
 
-    <!-- Charts Section -->
-    <div class="charts-grid">
-      <div class="chart-card">
-        <h3>Monthly Adoptions</h3>
-        <div class="chart-container">
-          <canvas ref="adoptionsChart"></canvas>
-        </div>
+      <div class="sidebar-footer">
+        <a href="#" @click.prevent="handleLogout" class="nav-item">
+          <i class="fas fa-sign-out-alt"></i>
+          <span>Logout</span>
+        </a>
       </div>
-      <div class="chart-card">
-        <h3>Pet Categories</h3>
-        <div class="chart-container">
-          <canvas ref="categoriesChart"></canvas>
-        </div>
-      </div>
-    </div>
+    </aside>
 
-    <!-- Recent Activity -->
-    <div class="recent-activity">
-      <h3>Recent Activity</h3>
-      <div class="activity-list">
-        <div v-for="activity in recentActivities" :key="activity.id" class="activity-item">
-          <div class="activity-icon" :class="activity.type">
-            <i :class="activity.icon"></i>
-          </div>
-          <div class="activity-details">
-            <p class="activity-text">{{ activity.text }}</p>
-            <span class="activity-time">{{ activity.time }}</span>
+    <!-- Main Content -->
+    <main class="admin-main">
+      <header class="admin-header">
+        <div class="header-left">
+          <h1>Dashboard</h1>
+        </div>
+        <div class="header-right">
+          <div class="admin-profile">
+            <img src="/Designer.png" alt="Admin" class="admin-avatar" />
+            <span class="admin-name">Admin</span>
           </div>
         </div>
+      </header>
+
+      <div class="admin-content">
+        <!-- Stats Cards -->
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon">
+              <i class="fas fa-paw"></i>
+            </div>
+            <div class="stat-info">
+              <h3>Total Pets</h3>
+              <p>{{ stats.totalPets }}</p>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">
+              <i class="fas fa-home"></i>
+            </div>
+            <div class="stat-info">
+              <h3>Available for Adoption</h3>
+              <p>{{ stats.availablePets }}</p>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">
+              <i class="fas fa-file-alt"></i>
+            </div>
+            <div class="stat-info">
+              <h3>Pending Applications</h3>
+              <p>{{ stats.pendingApplications }}</p>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">
+              <i class="fas fa-check-circle"></i>
+            </div>
+            <div class="stat-info">
+              <h3>Completed Adoptions</h3>
+              <p>{{ stats.completedAdoptions }}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Charts Section -->
+        <div class="charts-grid">
+          <div class="chart-card">
+            <h3>Monthly Adoptions</h3>
+            <div class="chart-container">
+              <canvas ref="adoptionsChart"></canvas>
+            </div>
+          </div>
+          <div class="chart-card">
+            <h3>Pet Categories</h3>
+            <div class="chart-container">
+              <canvas ref="categoriesChart"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="recent-activity">
+          <h3>Recent Activity</h3>
+          <div class="activity-list">
+            <div v-for="activity in recentActivities" :key="activity.id" class="activity-item">
+              <div class="activity-icon" :class="activity.type">
+                <i :class="activity.icon"></i>
+              </div>
+              <div class="activity-details">
+                <p class="activity-text">{{ activity.text }}</p>
+                <span class="activity-time">{{ activity.time }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
-    </div>
+    </main>
   </div>
 </template>
 
@@ -199,16 +254,146 @@ export default {
 </script>
 
 <style scoped>
-.dashboard {
+.admin-layout {
   display: flex;
-  flex-direction: column;
-  gap: 2rem;
+  min-height: 100vh;
+  background: #f4f6fa;
 }
 
+.admin-sidebar {
+  width: 260px;
+  background: #fff;
+  border-right: 1px solid #e0e0e0;
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  height: 100vh;
+  left: 0;
+  top: 0;
+  z-index: 1000;
+}
+
+.sidebar-header {
+  padding: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.logo-img {
+  width: 32px;
+  height: 32px;
+}
+
+.logo-text {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #f7871f;
+}
+
+.sidebar-nav {
+  flex: 1;
+  padding: 1rem 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 0.8rem 1.5rem;
+  color: #666;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  font-size: 0.95rem;
+}
+
+.nav-item:hover {
+  background: #f8f9fa;
+  color: #f7871f;
+  padding-left: 1.8rem;
+}
+
+.nav-item.active {
+  background: #fff5eb;
+  color: #f7871f;
+  border-left: 3px solid #f7871f;
+  font-weight: 500;
+}
+
+.nav-item i {
+  width: 20px;
+  text-align: center;
+  font-size: 1.1rem;
+}
+
+.sidebar-footer {
+  padding: 1rem 0;
+  border-top: 1px solid #e0e0e0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.admin-main {
+  flex: 1;
+  margin-left: 260px;
+  padding: 2rem;
+}
+
+.admin-header {
+  background: #fff;
+  padding: 1rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.header-left h1 {
+  font-size: 1.5rem;
+  color: #333;
+  margin: 0;
+}
+
+.admin-profile {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.admin-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.admin-name {
+  font-weight: 500;
+  color: #333;
+}
+
+.admin-content {
+  padding: 2rem;
+}
+
+/* Keep existing dashboard styles */
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.charts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
 }
 
 .stat-card {
@@ -244,12 +429,6 @@ export default {
   color: #222;
   font-size: 1.8rem;
   font-weight: 700;
-}
-
-.charts-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-  gap: 1.5rem;
 }
 
 .chart-card {
@@ -344,13 +523,36 @@ export default {
   font-size: 0.85rem;
 }
 
+/* Responsive Design */
 @media (max-width: 768px) {
-  .charts-grid {
-    grid-template-columns: 1fr;
+  .admin-sidebar {
+    width: 70px;
   }
 
-  .chart-container {
-    height: 250px;
+  .sidebar-header {
+    justify-content: center;
+    padding: 1rem;
+  }
+
+  .logo-text {
+    display: none;
+  }
+
+  .nav-item span {
+    display: none;
+  }
+
+  .nav-item {
+    justify-content: center;
+    padding: 1rem;
+  }
+
+  .admin-main {
+    margin-left: 70px;
+  }
+
+  .charts-grid {
+    grid-template-columns: 1fr;
   }
 }
 </style>
